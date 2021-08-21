@@ -1,0 +1,501 @@
+#+TITLE: Doom Emacs Config
+#+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
+
+* Introduction:
+General parameters for setting up emacs environment.
+#+begin_src lisp
+(setq user-full-name "Edward R. Klebanow"
+      user-mail-address "klebane@outlook.com")
+
+(setq doom-theme 'doom-vibrant)
+(setq doom-font (font-spec :family "JetBrains Mono" :size 16)
+      doom-big-font (font-spec :family "JetBrains Mono" :size 26)
+      doom-variable-pitch-font (font-spec :family "Overpass" :size 16)
+      doom-serif-font (font-spec :family "IBM Plex Mono" :weight 'light))
+(setq-default
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ tab-width 4                                      ; Set width for tabs
+ uniquify-buffer-name-style 'forward              ; Uniquify buffer names
+ window-combination-resize t                      ; take new window space from all other windows (not just current)
+ x-stretch-cursor t)                              ; Stretch cursor to the glyph width
+
+(setq undo-limit 80000000                         ; Raise undo-limit to 80Mb
+      evil-want-fine-undo t                       ; By default while in insert all changes are one big blob. Be more granular
+      auto-save-default t                         ; Nobody likes to loose work, I certainly don't
+      inhibit-compacting-font-caches t            ; When there are lots of glyphs, keep them in memory
+      truncate-string-ellipsis "…"               ; Unicode ellispis are nicer than "...", and also save /precious/ space
+      display-time-24hr-format t)
+
+(delete-selection-mode 1)                         ; Replace selection when inserting text
+(display-time-mode 1)                             ; Enable time in the mode-line
+(display-battery-mode 1)                          ; On laptops it's nice to know how much power you have
+(global-subword-mode 1)                           ; Iterate through CamelCase words
+
+                                        ;start emacs full screen
+(if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
+    (toggle-frame-maximized)
+  (toggle-frame-fullscreen))
+(setq display-time-day-and-date t)
+
+
+(setq neo-theme (if (display-graphic-p) 'icons 'arrow))
+
+#+end_src
+
+#+RESULTS:
+: icons
+
+* Email config using Mbsync and Mu4e
+
+#+begin_src lisp
+(after! mu4e
+(setq auth-sources '("~/authinfo.gpg")
+(setq mu4e-get-mail-command "mbsync -a")
+(setq epg-pinentry-mode 'loopback)
+(setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook") ; the rest of the mu4e folders are RELATIVE to this one
+        mu4e-index-update-in-background t
+        mu4e-compose-complete-only-personal t
+        mu4e-compose-signature-auto-include t
+        mu4e-use-fancy-chars t
+        mu4e-view-show-addresses t
+        mu4e-view-show-images t
+        mu4e-compose-format-flowed t
+        mu4e-compose-in-new-frame t
+        mu4e-change-filenames-when-moving t
+        mu4e-maildir-shortcuts
+         '( ("/Inbox" . ?i)
+            ("/Archive" . ?a)
+            ("/Drafts" . ?d)
+            ("/Deleted" . ?t)
+            ("/Sent" . ?s))
+
+         ;; Message Formatting and sending
+         message-send-mail-function 'smtpmail-send-it
+         message-signature-file "~/.signature_email"
+         message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
+         message-citation-line-function 'message-insert-formatted-citation-line
+         message-kill-buffer-on-exit t))
+
+
+(set-email-account! "klebane@outlook.com"
+                    '((user-mail-address      . "klebane@outlook.com")
+                      (user-full-name         . "Edward Klebanow")
+                      (smtpmail-smtp-server   . "smtp-mail.outlook.com")
+                      (smtpmail-smtp-service  . 587)
+                      (smtpmail-stream-type   . starttls)
+                      (smtpmail-debug-info    . t)
+                      (mu4e-drafts-folder     . "/Drafts")
+                      (mu4e-refile-folder     . "/Archive")
+                      (mu4e-sent-folder       . "/Sent")
+                      (mu4e-trash-folder      . "/Deleted")
+                      (mu4e-update-interval   . 600)
+                      ;(mu4e-sent-messages-behavior . 'delete)
+                      )
+                    nil)
+
+(global-set-key "\C-cm" 'mu4e)
+
+;;code to open html email in browser
+(after! mu4e
+  (add-to-list 'mu4e-view-actions '("browse message" .
+                                    mu4e-action-view-in-browser)))
+;;; Bookmarks
+(setq mu4e-bookmarks
+      `(
+	("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
+	("flag:unread" "Unread messages" ?n)
+        ("date:today..now" "Today's messages" ?t)
+        ))
+
+(map!
+ :after mu4e
+ :map mu4e-view-mode-map
+ "C-c g" #'bjm/mu4e-view-go-to-url-gui)
+
+(use-package mu4e-alert
+    :after mu4e
+    :hook (after-init . mu4e-alert-enable-mode-line-display)
+          (after-init . mu4e-alert-enable-notifications)
+    :config (mu4e-alert-set-default-style 'libnotify))
+
+(global-set-key (kbd "C-x w") 'elfeed)
+
+(defun bjm/mu4e-view-go-to-url-gui ()
+  "Wrapper for mu4e-view-go-to-url to use gui browser instead of eww"
+  (interactive)
+  (let ((browse-url-browser-function 'browse-url-default-browser))
+    (mu4e-view-go-to-url-gui)))
+
+(setq bookmark-default-file '"/home/eklebanow/bookmarks")
+#+end_src
+* Elfeed Config for RSS Feeds
+
+#+begin_src lisp
+
+(setq! elfeed-feeds
+'(("https://www.cyberciti.biz/feed/" linux)
+("https://www.tecmint.com/feed/" linux)
+("https://feeds.feedburner.com/d0od" linux)
+("https://www.linuxjournal.com/node/feed" linux)
+("http://www.linux-magazine.com/rss/feed/lmi_full" linux)
+("http://rss.slashdot.org/Slashdot/slashdotLinux" linux)
+("https://www.youtube.com/feeds/videos.xml?user=TheRibalinux" linux)
+("https://itsfoss.com/feed" linux)
+("https://news.google.com/news?cf=all&hl=en&pz=1&ned=us&q=linux&output=rss" linux)
+("https://www.phoronix.com/rss.php" linux)
+("https://www.unixmen.com/feed/" linux)
+("https://www.linoxide.com/feed" linux)
+("https://www.blogger.com/feeds/5398236625900904090/posts/default" linux)
+("http://www.linuxandubuntu.com/1/feed" linux)
+("https://www.linuxtoday.com/biglt.rss" linux)
+("https://lxer.com/module/newswire/headlines.rss" linux)
+("https://linuxhint.com/feed/" linux)
+("https://sysads.co.uk/feed" linux)
+("https://freedompenguin.com/feed/" linux)
+;;("news" :elfeed:)
+("http://rss.cnn.com/rss/cnn_topstories.rss" news)
+("http://dowjones.net/rss/" news)
+("http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml" news)
+("http://www.npr.org/rss/rss.php?id=1001" news)
+("http://rssfeeds.usatoday.com/usatoday-NewsTopStories" news)
+;;("sports" :elfeed:)
+("http://www.si.com/rss/si_topstories.rss" sports)
+("http://www.si.com/rss/si_topstories.rss" sports)
+("https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml" sports)
+("https://talksport.com/rss/sports-news/all/feed" sports)
+("http://feeds.sport24.co.za/articles/Sport/Featured/TopStories/rss" sports)
+("http://rss.cnn.com/rss/edition_sport.rss" sports)
+;;("tech" :elfeed:):
+("https://techcrunch.com/rssfeeds/" tech)
+("http://rss.slashdot.org/Slashdot/slashdot" tech)
+("https://spetrum.ieee.org/rss/blog/tech-talk/fulltext" tech)
+("https://www.techworld.com/news/rss" tech)
+("https://www.wired.com/feed" tech)
+("https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml" tech)
+;;("YouTube" :elfeed:)
+("https://www.youtube.com/feeds/videos.xml?channel_id=UCAPR27YUyxmgwm3Wc2WSHLw" YouTube)
+("https://www.youtube.com/feeds/videos.xml?channel_id=UCW6J17hZ_Vgr6cQgd_kHt5A" YouTube)
+("https://www.youtube.com/feeds/videos.xml?channel_id=UCc6MhFTqnuIpEGgLBm_jwtw" YouTube)
+("https://www.youtube.com/feeds/videos.xml?channel_id=UC0A3ldncnGQ1M_RU2Wb4L2A" YouTube)
+("https://www.youtube.com/feeds/videos.xml?channel_id=UCkTweJExGMqp3NLvzvOn-yg" YouTube)
+("https://www.youtube.com/feeds/videos.xml?channel_id=UCqh8w-GY6v0vgwIn_iWt87A" YouTube)
+;;("reddit" :elfeed:)
+("https://www.reddit.com/r/MacOS/comments/8vsd3k/macbook_pro_13_2017_or_lenovo_carbon_x1_6_gen_for/.rss" reddit)
+;;("science" :elfeed:)
+("http://feeds.nature.com/nature/rss/current" science)
+("https://rss.nytimes.com/services/xml/rss/nyt/Science.xml" science)
+("https://rss.nytimes.com/services/xml/rss/nyt/Health.xml" science)
+))
+
+;;remove bold font from elfeed search
+(after! elfeed
+(set-face-attribute 'elfeed-search-unread-title-face
+                      nil
+                      :weight 'normal
+                      :foreground (face-attribute 'default :foreground)))
+(map!
+ :after elfeed
+ :map elfeed-search-mode-map
+ "C-c u" #'elfeed-update)
+
+(map!
+:after elfeed
+:map elfeed-search-mode-map
+   "C-c a" #'bjm/elfeed-show-all
+   "C-c t" #'bjm/elfeed-show-tech
+   "C-c s" #'bjm/elfeed-show-sports
+   "C-c y" #'bjm/elfeed-show-YouTube
+   "C-c w" #'bjm/elfeed-show-science
+   "C-c n" #'bjm/elfeed-show-news)
+
+(global-set-key "\C-ce" 'elfeed-new-search)
+(defun bjm/elfeed-show-visit-gui ()
+  "Wrapper for elfeed-show-visit to use gui browser instead of eww"
+  (interactive)
+  (let ((browse-url-generic-program "/usr/bin/xdg-open"))
+                  (elfeed-show-visit t)))
+(map!
+ :after elfeed
+ :map elfeed-show-mode-map
+ "C-c g" #'bjm/elfeed-show-visit-gui)
+
+;;set eww as default emacs browser
+;;(setq browse-url-browser-function '((".*youtube.*" . browse-url-default-browser) ("." . eww-browse-url)))
+(setq browse-url-browser-function 'eww-browse-url)
+(use-package link-hint
+  :ensure t
+  :bind ("C-c f" . link-hint-open-link))
+
+(after! elfeed
+(use-package! elfeed-goodies)
+(elfeed-goodies/setup)
+(setq elfeed-goodies/entry-pane-size 0.5)
+(add-hook 'elfeed-show-mode-hook 'visual-line-mode)
+(evil-define-key 'normal elfeed-show-mode-map
+  (kbd "J") 'elfeed-goodies/split-show-next
+(kbd "K") 'elfeed-goodies/split-show-prev)
+(evil-define-key 'normal elfeed-search-mode-map
+  (kbd "J") 'elfeed-goodies/split-show-next
+  (kbd "K") 'elfeed-goodies/split-show-prev)
+(setq elfeed-goodies/tag-column-width 12)
+(setq elfeed-goodies/log-window-position 'bottom)
+(setq elfeed-goodies/log-window-size 0.8)
+(setq elfeed-goodies/powerline-default-separator 'arrow))
+
+(defcustom eww-buffer-max-height 0.7
+  "Maximu:m height for the eww buffer window."
+  :group 'eww
+  :type 'integer)
+(setq eww-buffer-max-height 0.7)
+
+;(require 'elfeed-goodies)
+;(setq elfeed-show-entry-switch #'elfeed-display-buffer)
+
+;(defun elfeed-display-buffer (buf &optional act)
+ ; (pop-to-buffer buf)
+  ;(set-window-text-height (get-buffer-window) (round (* 0.7 (frame-height)))))
+
+(defun bjm/elfeed-show-all ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-all"))
+(defun bjm/elfeed-show-tech ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-tech"))
+(defun bjm/elfeed-show-news ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-news"))
+(defun bjm/elfeed-show-science ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-science"))
+(defun bjm/elfeed-show-YouTube ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-YouTube"))
+(defun bjm/elfeed-show-sports ()
+  (interactive)
+  (bookmark-maybe-load-default-file)
+  (bookmark-jump "elfeed-sports"))
+#+end_src
+
+* Config for IRC Chat Using Circe:
+#+begin_src lisp
+(after! circe
+  (set-irc-server! "irc.us.libera.chat"
+	    '(:tls t
+	      :port 6697
+	      :nick "klebane"
+	      :sasl-username "klebane"
+	      :sasl-password "dairycow"
+	      :channels ("#gentoo"))))
+#+end_src
+
+* Config for Org-Mode:
+
+#+begin_src lisp
+
+(setq org-journal-enable-agenda-integration 't)
+
+(defun efs/org-mode-setup ()
+  (org-indent-mode)
+  (visual-line-mode 1))
+
+(use-package org
+  :hook (org-mode . efs/org-mode-setup))
+
+(defun efs/org-mode-visual-fill ()
+  (setq visual-fill-column-width 100
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . efs/org-mode-visual-fill))
+
+(global-set-key "\C-s" 'swiper)
+
+(setq-default major-mode 'org-mode)
+(after! flyspell (require 'flyspell-lazy) (flyspell-lazy-mode 1))
+
+;:to set flyspell mode active in all text buffers
+ (after! flyspell (add-hook 'text-mode-hook 'flyspell-mode))
+;;to set ispell program name to hunspell rather than aspell
+(setq ispell-program-name "hunspell")
+;(setenv
+ ;"DICPATH"
+ ;"/var/db/repos/gentoo/app-dicts\aspell-en")
+ (setq ispell-dictionary "en_US")
+
+(global-set-key "\C-ck" 'flyspell-correct-previous)
+
+(setq +org-capture-journal-file '"~/cal/journal.org")
+(after! org
+  (setq org-startup-indented t)
+  (add-hook 'org-mode-hook 'visual-line-mode)
+  (setq org-superstar-headline-bullets-list '("⁖"))
+  (setq org-agenda-files '("~/org/"))
+  (setq org-odt-preferred-output-format "doc")
+  (add-hook 'org-mode-hook 'flyspell-mode))
+
+
+(ivy-mode 1)
+(setq ivy-use-virtual-buffers t)
+(setq ivy-count-format "(%d/%d) ")
+#+end_src
+
+
+* Config for Vuiet Music Player:
+#+begin_src lisp
+(global-set-key "\C-cl" 'vuiet-play-loved-tracks)
+(global-set-key "\C-cs" 'vuiet-stop)
+(global-set-key "\C-cn" 'vuiet-next)
+#+end_src
+* Eshell Config:
+#+begin_src elisp
+(eshell-git-prompt-use-theme 'powerline)
+#+end_src
+* Calender Config:
+#+begin_src lisp
+(after! calendar
+(setq cfw:open-ical-calendar '"https://outlook.live.com/owa/calendar/6068d9a4-1741-4d27-81c8-182e25247bf1/071eeb13-0f73-4b17-b7e4-5f244c2d65a7/cid-005AF34A0FDB17C6/calendar.ics")
+(map! "\C-cc" (cmd! (cfw:open-ical-calendar
+                        cfw-open-ical-calendar))
+      (:map cfw:calendar-mode-map "\C-cd" #' cfw:show-details-command)))
+
+(defun calendar-helper () ;; doesn't have to be interactive
+  (cfw:open-calendar-buffer
+   :contents-sources
+   (list
+    (cfw:org-create-source "Blue")
+    (cfw:ical-create-source "Phoenix Circuit Calender" "https://outlook.live.com/owa/calendar/6068d9a4-1741-4d27-81c8-182e25247bf1/071eeb13-0f73-4b17-b7e4-5f244c2d65a7/cid-005AF34A0FDB17C6/calendar.ics" "Gray"))))
+
+(defun calendar-init ()
+  ;; switch to existing calendar buffer if applicable
+  (if-let (win (cl-find-if (lambda (b) (string-match-p "^\\*cfw:" (buffer-name b)
+                           (doom-visible-windows)
+                           :key #'window-buffer)
+      (select-window win)
+    (calendar-helper))))
+
+(defun =my-calendar ()
+  "Activate (or switch to) *my* `calendar' in its workspace."
+  (interactive)
+  (if (featurep! :ui workspaces) ;; create workspace (if enabled)
+      (progn
+        (+workspace-switch "Calendar" t)
+        (doom/switch-to-scratch-buffer)
+        (calendar-init):
+        (+workspace/display))))
+    (setq +calendar--wconf (current-window-configuration)
+    (delete-other-windows)
+    (switch-to-buffer (doom-fallback-buffer))
+    (calendar-init)
+
+(global-set-key "\C-cc" 'cfw:open-ical-calendar)
+#+end_src
+
+* Dired Directory Manager Config:
+#+begin_src lisp
+
+(setq dired-guess-shell-alist-user '(("\\.pdf$" "nohup xdg-open * </dev/null >/dev/null 2>&1 &")))
+#+end_src
+
+
+* Miscellaneous Stuff:
+#+begin_src lisp
+
+
+(custom-set-variables
+ '(package-selected-packages
+   (quote
+    (powerline telephone-line company-try-hard mu4e-alert flyspell-correct-ivy helm-flyspell flyspell-correct-helm flyspell-correct-avy-menu flyspell-lazy info-colors elfeed-org org-msg youdao-dictionary swiper-helm vuiet org-journal link-hint excorporate eww-lnum counsel company calfw-ical)))
+ '(send-mail-function (quote smtpmail-send-it)))
+(custom-set-faces
+ '(default ((t (:background "#2a2e38")))))
+
+#+end_src
+* Config for Nyxt (elisp) browser:
+
+Call an Emacs command and have a Nyxt open and listen to us from a REPL. We need to run the browser, and to connect Swank and Slime.
+#+begin_src lisp
+
+;;(setq engine/browser-function 'nyxt-browse-url)
+
+(after! engine-mode
+
+(defun my/start-and-connect-to-nyxt (&optional no-maximize)
+  "Start Nyxt with swank capabilities."
+  (interactive)
+  (async-shell-command (format "nyxt -e \"(nyxt-user::start-swank)\""))
+  (sleep-for my/slime-nyxt-delay)
+  (my/slime-connect "localhost" "4006")
+  (unless no-maximize (my/slime-repl-send-string "(toggle-fullscreen)")))
+
+(defun my/slime-connect (host port)
+  (defun true (&rest args) 't)
+  (advice-add 'slime-check-version :override #'true)
+  (slime-connect host port)
+  (sleep-for my/slime-nyxt-delay)
+  (advice-remove 'slime-check-version #'true))
+
+(defun my/slime-repl-send-string (sexp)
+  (defun true (&rest args) 't)
+  (advice-add 'slime-check-version :override #'true)
+  (if (slime-connected-p)
+      (slime-repl-send-string sexp)
+    (error "Slime is not connected to Nyxt. Run `my/start-and-connect-to-nyxt' first."))
+  (sleep-for my/slime-nyxt-delay)
+  (advice-remove 'slime-check-version #'true))
+
+(defun my/browse-url-nyxt (url &optional buffer-title)
+  (interactive "sURL: ")
+  (my/slime-repl-send-string
+   (format
+    "(buffer-load \"%s\" %s)"
+    url
+    (if buffer-title (format ":buffer (make-buffer :title \"%s\")" buffer-title) ""))))
+
+(defun browse-url-nyxt (url &optional new-window)
+  (interactive "sURL: ")
+  (unless (slime-connected-p) (my/start-and-connect-to-nyxt))
+  (my/browse-url-nyxt url url)))
+(defengine amazon
+  "https://www.amazon.com/s/ref=nb_sb_noss?field-keywords=%s")
+
+(defengine duckduckgo
+  "https://duckduckgo.com/?q=%s"
+  :keybinding "d")
+
+(defengine github
+  "https://github.com/search?ref=simplesearch&q=%s")
+
+(defengine google
+  "http://www.google.com/search?ie=utf-8&oe=utf-8&q=%s"
+  :keybinding "g")
+
+(defengine google-images
+  "http://www.google.com/images?hl=en&source=hp&biw=1440&bih=795&gbv=2&aq=f&aqi=&aql=&oq=&q=%s")
+
+(defengine google-maps
+  "http://maps.google.com/maps?q=%s"
+  :docstring "Mappin' it up.")
+
+(defengine stack-overflow
+  "https://stackoverflow.com/search?q=%s")
+
+(defengine twitter
+  "https://twitter.com/search?q=%s")
+
+(defengine wikipedia
+  "http://www.wikipedia.org/search-redirect.php?language=en&go=Go&search=%s"
+  :keybinding "w"
+  :docstring "Searchin' the wikis.")
+
+(defengine wiktionary
+  "https://www.wikipedia.org/search-redirect.php?family=wiktionary&language=en&go=Go&search=%s")
+
+(defengine youtube
+  "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
+  #+end_src
