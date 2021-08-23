@@ -1,6 +1,8 @@
 #+TITLE: Doom Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
+* TABLE OF CONTENTS
+#+TOC:
 * Introduction:
 General parameters for setting up emacs environment.
 #+begin_src lisp
@@ -345,7 +347,6 @@ General parameters for setting up emacs environment.
 (setq ivy-count-format "(%d/%d) ")
 #+end_src
 
-
 * Config for Vuiet Music Player:
 #+begin_src lisp
 (global-set-key "\C-cl" 'vuiet-play-loved-tracks)
@@ -401,7 +402,6 @@ General parameters for setting up emacs environment.
 
 (setq dired-guess-shell-alist-user '(("\\.pdf$" "nohup xdg-open * </dev/null >/dev/null 2>&1 &")))
 #+end_src
-
 
 * Miscellaneous Stuff:
 #+begin_src lisp
