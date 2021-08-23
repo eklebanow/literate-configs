@@ -1,6 +1,19 @@
 #+TITLE: Doom Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
+* TABLE OF CONTENTS :toc:
+- [[#introduction][Introduction:]]
+- [[#email-config-using-mbsync-and-mu4e][Email config using Mbsync and Mu4e]]
+- [[#elfeed-config-for-rss-feeds][Elfeed Config for RSS Feeds]]
+- [[#config-for-irc-chat-using-circe][Config for IRC Chat Using Circe:]]
+- [[#config-for-org-mode][Config for Org-Mode:]]
+- [[#config-for-vuiet-music-player][Config for Vuiet Music Player:]]
+- [[#eshell-config][Eshell Config:]]
+- [[#calender-config][Calender Config:]]
+- [[#dired-directory-manager-config][Dired Directory Manager Config:]]
+- [[#miscellaneous-stuff][Miscellaneous Stuff:]]
+- [[#config-for-nyxt-elisp-browser][Config for Nyxt (elisp) browser:]]
+
 * Introduction:
 :PROPERTIES:
 :TOC:      :include all
@@ -501,6 +514,3 @@ Call an Emacs command and have a Nyxt open and listen to us from a REPL. We need
   "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
   #+end_src
 
-# Local Variables:
-# :CONTENTS:: :CONTENTS:
-# End:
