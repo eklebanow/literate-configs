@@ -15,10 +15,8 @@
 - [[#config-for-nyxt-elisp-browser][Config for Nyxt (elisp) browser:]]
 
 * Introduction:
-:PROPERTIES:
-:TOC:      :include all
-:END:
-General parameters for setting up emacs environment.
+General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
+
 #+begin_src lisp
 (setq user-full-name "Edward R. Klebanow"
       user-mail-address "klebane@outlook.com")
@@ -29,46 +27,43 @@ General parameters for setting up emacs environment.
       doom-variable-pitch-font (font-spec :family "Overpass" :size 16)
       doom-serif-font (font-spec :family "IBM Plex Mono" :weight 'light))
 (setq-default
- delete-by-moving-to-trash t                      ; Delete files to trash
- tab-width 4                                      ; Set width for tabs
- uniquify-buffer-name-style 'forward              ; Uniquify buffer names
- window-combination-resize t                      ; take new window space from all other windows (not just current)
- x-stretch-cursor t)                              ; Stretch cursor to the glyph width
+ delete-by-moving-to-trash t              
+ tab-width 4                                    
+ uniquify-buffer-name-style 'forward             
+ window-combination-resize t                      
+ x-stretch-cursor t)                           
 
-(setq undo-limit 80000000                         ; Raise undo-limit to 80Mb
-      evil-want-fine-undo t                       ; By default while in insert all changes are one big blob. Be more granular
-      auto-save-default t                         ; Nobody likes to loose work, I certainly don't
-      inhibit-compacting-font-caches t            ; When there are lots of glyphs, keep them in memory
-      truncate-string-ellipsis "…"               ; Unicode ellispis are nicer than "...", and also save /precious/ space
+(setq undo-limit 80000000     
+      evil-want-fine-undo t            
+      auto-save-default t                  
+      inhibit-compacting-font-caches t  
+      truncate-string-ellipsis "…"        
       display-time-24hr-format t)
 
-(delete-selection-mode 1)                         ; Replace selection when inserting text
-(display-time-mode 1)                             ; Enable time in the mode-line
-(display-battery-mode 1)                          ; On laptops it's nice to know how much power you have
-(global-subword-mode 1)                           ; Iterate through CamelCase words
+(delete-selection-mode 1)           
+(display-time-mode 1)          
+(display-battery-mode 1)                  
+(global-subword-mode 1)                    
 
-                                        ;start emacs full screen
-(if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
+                                
+(if (eq initial-window-system 'x)                
     (toggle-frame-maximized)
   (toggle-frame-fullscreen))
 (setq display-time-day-and-date t)
-
 
 (setq neo-theme (if (display-graphic-p) 'icons 'arrow))
 
 #+end_src
 
-#+RESULTS:
-: icons
-
 * Email config using Mbsync and Mu4e
+Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu4e.  Outgoing mail is gpg encoded. Bookmarks can be made and viewed and incoming e-mail can be sent to graphical browsers for viewing.
 
 #+begin_src lisp
 (after! mu4e
 (setq auth-sources '("~/authinfo.gpg")
 (setq mu4e-get-mail-command "mbsync -a")
 (setq epg-pinentry-mode 'loopback)
-(setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook") ; the rest of the mu4e folders are RELATIVE to this one
+(setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook")
         mu4e-index-update-in-background t
         mu4e-compose-complete-only-personal t
         mu4e-compose-signature-auto-include t
@@ -85,13 +80,11 @@ General parameters for setting up emacs environment.
             ("/Deleted" . ?t)
             ("/Sent" . ?s))
 
-         ;; Message Formatting and sending
          message-send-mail-function 'smtpmail-send-it
          message-signature-file "~/.signature_email"
          message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
          message-citation-line-function 'message-insert-formatted-citation-line
          message-kill-buffer-on-exit t))
-
 
 (set-email-account! "klebane@outlook.com"
                     '((user-mail-address      . "klebane@outlook.com")
@@ -105,17 +98,14 @@ General parameters for setting up emacs environment.
                       (mu4e-sent-folder       . "/Sent")
                       (mu4e-trash-folder      . "/Deleted")
                       (mu4e-update-interval   . 600)
-                      ;(mu4e-sent-messages-behavior . 'delete)
                       )
                     nil)
 
 (global-set-key "\C-cm" 'mu4e)
 
-;;code to open html email in browser
 (after! mu4e
   (add-to-list 'mu4e-view-actions '("browse message" .
                                     mu4e-action-view-in-browser)))
-;;; Bookmarks
 (setq mu4e-bookmarks
       `(
 	("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
@@ -145,7 +135,7 @@ General parameters for setting up emacs environment.
 (setq bookmark-default-file '"/home/eklebanow/bookmarks")
 #+end_src
 * Elfeed Config for RSS Feeds
-
+The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing.  
 #+begin_src lisp
 
 (setq! elfeed-feeds
@@ -203,7 +193,6 @@ General parameters for setting up emacs environment.
 ("https://rss.nytimes.com/services/xml/rss/nyt/Health.xml" science)
 ))
 
-;;remove bold font from elfeed search
 (after! elfeed
 (set-face-attribute 'elfeed-search-unread-title-face
                       nil
@@ -235,7 +224,6 @@ General parameters for setting up emacs environment.
  :map elfeed-show-mode-map
  "C-c g" #'bjm/elfeed-show-visit-gui)
 
-;;set eww as default emacs browser
 ;;(setq browse-url-browser-function '((".*youtube.*" . browse-url-default-browser) ("." . eww-browse-url)))
 (setq browse-url-browser-function 'eww-browse-url)
 (use-package link-hint
@@ -259,17 +247,10 @@ General parameters for setting up emacs environment.
 (setq elfeed-goodies/powerline-default-separator 'arrow))
 
 (defcustom eww-buffer-max-height 0.7
-  "Maximu:m height for the eww buffer window."
+  "Maximum height for the eww buffer window."
   :group 'eww
   :type 'integer)
 (setq eww-buffer-max-height 0.7)
-
-;(require 'elfeed-goodies)
-;(setq elfeed-show-entry-switch #'elfeed-display-buffer)
-
-;(defun elfeed-display-buffer (buf &optional act)
- ; (pop-to-buffer buf)
-  ;(set-window-text-height (get-buffer-window) (round (* 0.7 (frame-height)))))
 
 (defun bjm/elfeed-show-all ()
   (interactive)
@@ -310,7 +291,7 @@ General parameters for setting up emacs environment.
 #+end_src
 
 * Config for Org-Mode:
-
+Setup for org documents including wrapping, spell checking, dictionary use and org-capture templates.  I-spell is used instead of A-spell.  Searching is by swiper
 #+begin_src lisp
 
 (setq org-journal-enable-agenda-integration 't)
@@ -335,14 +316,9 @@ General parameters for setting up emacs environment.
 (setq-default major-mode 'org-mode)
 (after! flyspell (require 'flyspell-lazy) (flyspell-lazy-mode 1))
 
-;:to set flyspell mode active in all text buffers
  (after! flyspell (add-hook 'text-mode-hook 'flyspell-mode))
-;;to set ispell program name to hunspell rather than aspell
-(setq ispell-program-name "hunspell")
-;(setenv
- ;"DICPATH"
- ;"/var/db/repos/gentoo/app-dicts\aspell-en")
- (setq ispell-dictionary "en_US")
+   (setq ispell-program-name "hunspell")
+   (setq ispell-dictionary "en_US")
 
 (global-set-key "\C-ck" 'flyspell-correct-previous)
 
@@ -362,6 +338,8 @@ General parameters for setting up emacs environment.
 #+end_src
 
 * Config for Vuiet Music Player:
+The vuiet music player is used with keybindings for shortcuts.
+
 #+begin_src lisp
 (global-set-key "\C-cl" 'vuiet-play-loved-tracks)
 (global-set-key "\C-cs" 'vuiet-stop)
@@ -420,7 +398,6 @@ General parameters for setting up emacs environment.
 * Miscellaneous Stuff:
 #+begin_src lisp
 
-
 (custom-set-variables
  '(package-selected-packages
    (quote
@@ -428,7 +405,6 @@ General parameters for setting up emacs environment.
  '(send-mail-function (quote smtpmail-send-it)))
 (custom-set-faces
  '(default ((t (:background "#2a2e38")))))
-
 #+end_src
 * Config for Nyxt (elisp) browser:
 
