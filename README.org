@@ -1,9 +1,6 @@
 #+TITLE: Doom Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
-:CONTENTS:
-
-:END:
 * Introduction:
 :PROPERTIES:
 :TOC:      :include all
@@ -503,3 +500,7 @@ Call an Emacs command and have a Nyxt open and listen to us from a REPL. We need
 (defengine youtube
   "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
   #+end_src
+
+# Local Variables:
+# :CONTENTS:: :CONTENTS:
+# End:
