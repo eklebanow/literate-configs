@@ -1,7 +1,6 @@
 #+TITLE: Doom Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
-* TABLE OF CONTENTS
 #+TOC:
 * Introduction:
 General parameters for setting up emacs environment.
