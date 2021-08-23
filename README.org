@@ -1,8 +1,13 @@
 #+TITLE: Doom Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
-#+TOC:
+:CONTENTS:
+
+:END:
 * Introduction:
+:PROPERTIES:
+:TOC:      :include all
+:END:
 General parameters for setting up emacs environment.
 #+begin_src lisp
 (setq user-full-name "Edward R. Klebanow"
