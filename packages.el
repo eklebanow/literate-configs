@@ -1,0 +1,36 @@
+;; -*- no-byte-compile: t; -*-
+;;; .doom.d/packages.el
+
+;;; Examples:
+;; (package! some-package)
+;; (package! another-package :recipe (:host github :repo "username/repo"))
+;; (package! builtin-package :disable t)
+
+
+(package! mu4e-alert)
+(package! elfeed)
+(package! pass)
+(package! org-journal)
+(package! avy)
+(package! vuiet)
+(package! company)
+(package! elfeed-org)
+(package! flyspell-lazy :pin "3ebf68cc9e...")
+(package! info-colors :pin "47ee73cc19...")
+(package! flyspell-correct-ivy)
+(package! lastfm)
+(package! mu4e)
+(package! elfeed-goodies)
+(package! magit-section)
+(package! engine-mode)
+(package! pinentry)
+(package! eshell-git-prompt)
+(package! visual-fill-column)
+(package! org-mime)
+(package! org-tree-slide)
+(package! pdf-tools)
+(package! link-hint)
+(package! vertico)
+(package! marginalia)   
+(package! swiper)
+(package! org-roam)

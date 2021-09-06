@@ -1,4 +1,4 @@
-#+TITLE: Doom Emacs Config
+DOOM Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
 * TABLE OF CONTENTS :toc:
@@ -9,15 +9,15 @@
 - [[#config-for-org-mode][Config for Org-Mode:]]
 - [[#config-for-vuiet-music-player][Config for Vuiet Music Player:]]
 - [[#eshell-config][Eshell Config:]]
-- [[#calender-config][Calender Config:]]
 - [[#dired-directory-manager-config][Dired Directory Manager Config:]]
 - [[#miscellaneous-stuff][Miscellaneous Stuff:]]
 - [[#config-for-nyxt-elisp-browser][Config for Nyxt (elisp) browser:]]
+- [[#completion][Completion:]]
 
 * Introduction:
 General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
 
-#+begin_src lisp
+#+begin_src emacs-lisp
 (setq user-full-name "Edward R. Klebanow"
       user-mail-address "klebane@outlook.com")
 
@@ -40,29 +40,23 @@ General parameters for setting up emacs environment. This includes theming, wind
       truncate-string-ellipsis "…"        
       display-time-24hr-format t)
 
-(delete-selection-mode 1)           
+(delete-selection-mode 1)
 (display-time-mode 1)          
-(display-battery-mode 1)                  
+ (display-battery-mode 1)                  
 (global-subword-mode 1)                    
 
                                 
 (if (eq initial-window-system 'x)                
     (toggle-frame-maximized)
   (toggle-frame-fullscreen))
+
 (setq display-time-day-and-date t)
-
-(setq neo-theme (if (display-graphic-p) 'icons 'arrow))
-
 #+end_src
 
 * Email config using Mbsync and Mu4e
 Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu4e.  Outgoing mail is gpg encoded. Bookmarks can be made and viewed and incoming e-mail can be sent to graphical browsers for viewing.
 
-#+begin_src lisp
-(after! mu4e
-(setq auth-sources '("~/authinfo.gpg")
-(setq mu4e-get-mail-command "mbsync -a")
-(setq epg-pinentry-mode 'loopback)
+#+begin_src emacs-lisp
 (setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook")
         mu4e-index-update-in-background t
         mu4e-compose-complete-only-personal t
@@ -84,7 +78,7 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
          message-signature-file "~/.signature_email"
          message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
          message-citation-line-function 'message-insert-formatted-citation-line
-         message-kill-buffer-on-exit t))
+         message-kill-buffer-on-exit t)
 
 (set-email-account! "klebane@outlook.com"
                     '((user-mail-address      . "klebane@outlook.com")
@@ -103,9 +97,9 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 
 (global-set-key "\C-cm" 'mu4e)
 
-(after! mu4e
-  (add-to-list 'mu4e-view-actions '("browse message" .
-                                    mu4e-action-view-in-browser)))
+(setq auth-sources '("~/authinfo.gpg"))
+(setq epg-pinentry-mode 'loopback)
+
 (setq mu4e-bookmarks
       `(
 	("flag:unread AND NOT flag:trashed" "Unread messages" ?u)
@@ -118,13 +112,14 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
  :map mu4e-view-mode-map
  "C-c g" #'bjm/mu4e-view-go-to-url-gui)
 
-(use-package mu4e-alert
-    :after mu4e
-    :hook (after-init . mu4e-alert-enable-mode-line-display)
-          (after-init . mu4e-alert-enable-notifications)
-    :config (mu4e-alert-set-default-style 'libnotify))
+;;(after! mu4e
+  ;;  :hook (after-init . mu4e-alert-enable-mode-line-display)
+    ;;      (after-init . mu4e-alert-enable-notifications)
+  ;;  :config (mu4e-alert-set-default-style 'libnotify))
 
-(global-set-key (kbd "C-x w") 'elfeed)
+(after! mu4e
+  (add-to-list 'mu4e-view-actions '("browse message" .  mu4e-action-view-in-browser)))
+
 
 (defun bjm/mu4e-view-go-to-url-gui ()
   "Wrapper for mu4e-view-go-to-url to use gui browser instead of eww"
@@ -135,8 +130,8 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 (setq bookmark-default-file '"/home/eklebanow/bookmarks")
 #+end_src
 * Elfeed Config for RSS Feeds
-The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing.  
-#+begin_src lisp
+The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing.
+#+begin_src emacs-lisp
 
 (setq! elfeed-feeds
 '(("https://www.cyberciti.biz/feed/" linux)
@@ -193,25 +188,8 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 ("https://rss.nytimes.com/services/xml/rss/nyt/Health.xml" science)
 ))
 
-(after! elfeed
-(set-face-attribute 'elfeed-search-unread-title-face
-                      nil
-                      :weight 'normal
-                      :foreground (face-attribute 'default :foreground)))
-(map!
- :after elfeed
- :map elfeed-search-mode-map
- "C-c u" #'elfeed-update)
-
-(map!
-:after elfeed
-:map elfeed-search-mode-map
-   "C-c a" #'bjm/elfeed-show-all
-   "C-c t" #'bjm/elfeed-show-tech
-   "C-c s" #'bjm/elfeed-show-sports
-   "C-c y" #'bjm/elfeed-show-YouTube
-   "C-c w" #'bjm/elfeed-show-science
-   "C-c n" #'bjm/elfeed-show-news)
+;;(setq browse-url-browser-function '((".*youtube.*" . browse-url-default-browser) ("." . eww-browse-url)))
+(setq browse-url-browser-function 'eww-browse-url)
 
 (global-set-key "\C-ce" 'elfeed-new-search)
 (defun bjm/elfeed-show-visit-gui ()
@@ -219,38 +197,8 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
   (interactive)
   (let ((browse-url-generic-program "/usr/bin/xdg-open"))
                   (elfeed-show-visit t)))
-(map!
- :after elfeed
- :map elfeed-show-mode-map
- "C-c g" #'bjm/elfeed-show-visit-gui)
 
-;;(setq browse-url-browser-function '((".*youtube.*" . browse-url-default-browser) ("." . eww-browse-url)))
-(setq browse-url-browser-function 'eww-browse-url)
-(use-package link-hint
-  :ensure t
-  :bind ("C-c f" . link-hint-open-link))
-
-(after! elfeed
-(use-package! elfeed-goodies)
-(elfeed-goodies/setup)
-(setq elfeed-goodies/entry-pane-size 0.5)
-(add-hook 'elfeed-show-mode-hook 'visual-line-mode)
-(evil-define-key 'normal elfeed-show-mode-map
-  (kbd "J") 'elfeed-goodies/split-show-next
-(kbd "K") 'elfeed-goodies/split-show-prev)
-(evil-define-key 'normal elfeed-search-mode-map
-  (kbd "J") 'elfeed-goodies/split-show-next
-  (kbd "K") 'elfeed-goodies/split-show-prev)
-(setq elfeed-goodies/tag-column-width 12)
-(setq elfeed-goodies/log-window-position 'bottom)
-(setq elfeed-goodies/log-window-size 0.8)
-(setq elfeed-goodies/powerline-default-separator 'arrow))
-
-(defcustom eww-buffer-max-height 0.7
-  "Maximum height for the eww buffer window."
-  :group 'eww
-  :type 'integer)
-(setq eww-buffer-max-height 0.7)
+(global-set-key (kbd "C-x w") 'elfeed)
 
 (defun bjm/elfeed-show-all ()
   (interactive)
@@ -276,10 +224,61 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
   (interactive)
   (bookmark-maybe-load-default-file)
   (bookmark-jump "elfeed-sports"))
+
+(after! elfeed
+(set-face-attribute 'elfeed-search-unread-title-face
+                      nil
+                      :weight 'normal
+                      :foreground (face-attribute 'default :foreground)))
+(map!
+ :after elfeed
+ :map elfeed-search-mode-map
+ "C-c u" #'elfeed-update)
+
+(map!
+:after elfeed
+:map elfeed-search-mode-map
+   "C-c a" #'bjm/elfeed-show-all
+   "C-c t" #'bjm/elfeed-show-tech
+   "C-c s" #'bjm/elfeed-show-sports
+   "C-c y" #'bjm/elfeed-show-YouTube
+   "C-c w" #'bjm/elfeed-show-science
+   "C-c n" #'bjm/elfeed-show-news)
+
+(map!
+ :after elfeed
+ :map elfeed-show-mode-map
+ "C-c g" #'bjm/elfeed-show-visit-gui)
+
+;;(after! elfeed
+;;(setq link-hint t)
+;;   :bind ("C-c f" . link-hint-open-link))
+
+(after! elfeed
+(elfeed-goodies/setup)
+(setq elfeed-goodies/entry-pane-size 0.5)
+(add-hook 'elfeed-show-mode-hook 'visual-line-mode)
+(evil-define-key 'normal elfeed-show-mode-map
+  (kbd "J") 'elfeed-goodies/split-show-next
+(kbd "K") 'elfeed-goodies/split-show-prev)
+(evil-define-key 'normal elfeed-search-mode-map
+  (kbd "J") 'elfeed-goodies/split-show-next
+  (kbd "K") 'elfeed-goodies/split-show-prev)
+(setq elfeed-goodies/tag-column-width 12)
+(setq elfeed-goodies/log-window-position 'bottom)
+(setq elfeed-goodies/log-window-size 0.8)
+(setq elfeed-goodies/powerline-default-separator 'arrow))
+
+(defcustom eww-buffer-max-height 0.7
+  "Maximum height for the eww buffer window."
+  :group 'eww
+  :type 'integer)
+(setq eww-buffer-max-height 0.7)
+
 #+end_src
 
 * Config for IRC Chat Using Circe:
-#+begin_src lisp
+#+begin_src emacs-lisp
 (after! circe
   (set-irc-server! "irc.us.libera.chat"
 	    '(:tls t
@@ -292,16 +291,13 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 
 * Config for Org-Mode:
 Setup for org documents including wrapping, spell checking, dictionary use and org-capture templates.  I-spell is used instead of A-spell.  Searching is by swiper
-#+begin_src lisp
+#+begin_src emacs-lisp
 
 (setq org-journal-enable-agenda-integration 't)
 
 (defun efs/org-mode-setup ()
   (org-indent-mode)
   (visual-line-mode 1))
-
-(use-package org
-  :hook (org-mode . efs/org-mode-setup))
 
 (defun efs/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
@@ -311,12 +307,17 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
 (use-package visual-fill-column
   :hook (org-mode . efs/org-mode-visual-fill))
 
+;(ivy-mode 1)
+;(setq ivy-use-virtual-buffers t)
+;(setq ivy-count-format "(%d/%d)")
+
 (global-set-key "\C-s" 'swiper)
 
 (setq-default major-mode 'org-mode)
+
 (after! flyspell (require 'flyspell-lazy) (flyspell-lazy-mode 1))
 
- (after! flyspell (add-hook 'text-mode-hook 'flyspell-mode))
+(after! flyspell (add-hook 'text-mode-hook 'flyspell-mode))
    (setq ispell-program-name "hunspell")
    (setq ispell-dictionary "en_US")
 
@@ -331,72 +332,35 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
   (setq org-odt-preferred-output-format "doc")
   (add-hook 'org-mode-hook 'flyspell-mode))
 
+(after! org-mode
+  :hook (org-mode . efs/org-mode-setup))
 
-(ivy-mode 1)
-(setq ivy-use-virtual-buffers t)
-(setq ivy-count-format "(%d/%d) ")
+(after! org-mode
+  :hook (org-mode . efs/org-mode-visual-fill))
 #+end_src
+
+#+RESULTS:
 
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
 
-#+begin_src lisp
+#+begin_src emacs-lisp
 (global-set-key "\C-cl" 'vuiet-play-loved-tracks)
 (global-set-key "\C-cs" 'vuiet-stop)
-(global-set-key "\C-cn" 'vuiet-next)
+;;(global-set-key "\C-cn" 'vuiet-next)
 #+end_src
 * Eshell Config:
-#+begin_src elisp
+#+begin_src emacs-lisp
 (eshell-git-prompt-use-theme 'powerline)
 #+end_src
-* Calender Config:
-#+begin_src lisp
-(after! calendar
-(setq cfw:open-ical-calendar '"https://outlook.live.com/owa/calendar/6068d9a4-1741-4d27-81c8-182e25247bf1/071eeb13-0f73-4b17-b7e4-5f244c2d65a7/cid-005AF34A0FDB17C6/calendar.ics")
-(map! "\C-cc" (cmd! (cfw:open-ical-calendar
-                        cfw-open-ical-calendar))
-      (:map cfw:calendar-mode-map "\C-cd" #' cfw:show-details-command)))
-
-(defun calendar-helper () ;; doesn't have to be interactive
-  (cfw:open-calendar-buffer
-   :contents-sources
-   (list
-    (cfw:org-create-source "Blue")
-    (cfw:ical-create-source "Phoenix Circuit Calender" "https://outlook.live.com/owa/calendar/6068d9a4-1741-4d27-81c8-182e25247bf1/071eeb13-0f73-4b17-b7e4-5f244c2d65a7/cid-005AF34A0FDB17C6/calendar.ics" "Gray"))))
-
-(defun calendar-init ()
-  ;; switch to existing calendar buffer if applicable
-  (if-let (win (cl-find-if (lambda (b) (string-match-p "^\\*cfw:" (buffer-name b)
-                           (doom-visible-windows)
-                           :key #'window-buffer)
-      (select-window win)
-    (calendar-helper))))
-
-(defun =my-calendar ()
-  "Activate (or switch to) *my* `calendar' in its workspace."
-  (interactive)
-  (if (featurep! :ui workspaces) ;; create workspace (if enabled)
-      (progn
-        (+workspace-switch "Calendar" t)
-        (doom/switch-to-scratch-buffer)
-        (calendar-init):
-        (+workspace/display))))
-    (setq +calendar--wconf (current-window-configuration)
-    (delete-other-windows)
-    (switch-to-buffer (doom-fallback-buffer))
-    (calendar-init)
-
-(global-set-key "\C-cc" 'cfw:open-ical-calendar)
-#+end_src
-
 * Dired Directory Manager Config:
-#+begin_src lisp
+#+begin_src emacs-lisp
 
 (setq dired-guess-shell-alist-user '(("\\.pdf$" "nohup xdg-open * </dev/null >/dev/null 2>&1 &")))
 #+end_src
 
 * Miscellaneous Stuff:
-#+begin_src lisp
+#+begin_src emacs-lisp
 
 (custom-set-variables
  '(package-selected-packages
@@ -408,8 +372,8 @@ The vuiet music player is used with keybindings for shortcuts.
 #+end_src
 * Config for Nyxt (elisp) browser:
 
-Call an Emacs command and have a Nyxt open and listen to us from a REPL. We need to run the browser, and to connect Swank and Slime.
-#+begin_src lisp
+Call an Emacs command and have a Nyxt open and listen to us from a REPEL. We need to run the browser, and to connect Swank and Slime.
+#+begin_src emacs-lisp
 
 ;;(setq engine/browser-function 'nyxt-browse-url)
 
@@ -450,7 +414,7 @@ Call an Emacs command and have a Nyxt open and listen to us from a REPL. We need
 (defun browse-url-nyxt (url &optional new-window)
   (interactive "sURL: ")
   (unless (slime-connected-p) (my/start-and-connect-to-nyxt))
-  (my/browse-url-nyxt url url)))
+  (my/browse-url-nyxt url)))
 (defengine amazon
   "https://www.amazon.com/s/ref=nb_sb_noss?field-keywords=%s")
 
@@ -489,4 +453,83 @@ Call an Emacs command and have a Nyxt open and listen to us from a REPL. We need
 (defengine youtube
   "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
   #+end_src
+[[id:64dd4de2-c037-4b6e-8f99-48f1181d131e][2021-08-31]]* Journaling with Org-Roam
+Org-Roam is set up to be my second brain.  I can capture information on a certain date and time and then revisit it as necessary...no memory required       .
 
+ #+begin_src emacs-lisp
+(after! org
+  (use-package! org-roam
+  :init
+  (setq org-roam-v2-ack t)
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam" "l" #'org-roam-buffer-toggle
+        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+        :desc "org-roam-node-find" "f" #'org-roam-node-find
+        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
+        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+        :desc "org-roam-capture" "c" #'org-roam-capture)
+  :config
+  (org-roam-setup)))
+
+  (add-hook 'org-roam-mode-hook #'turn-on-visual-line-mode)
+  (setq org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :if-new (file+head "${slug}.org"
+                              "#+title: ${title}\n")
+           :unnarrowed t)))
+ (use-package! org-roam-dailies
+  :init
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam-dailies-capture-today" "j" #'org-roam-dailies-capture-today)
+  :custom
+  (org-roam-directory "~/RoamNotes")
+  (org-roam-completion-everywhere t)
+  (org-roam-dailies-capture-templates
+    '(("d" "default" entry "* %<%I:%M %p>: %?"
+       :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point)
+         :map org-roam-dailies-map
+         ("Y" . org-roam-dailies-capture-yesterday)
+         ("T" . org-roam-dailies-capture-tomorrow))
+  :bind-keymap
+  ("C-c n d" . org-roam-dailies-map)
+  :config
+  (require 'org-roam-dailies))
+  #+end_src
+* Completion:
+Use vertico for streamlined completion and other niceties provided by marginalia.
+#+begin_src emacs-lisp
+(use-package vertico
+  :ensure t
+  :bind (:map vertico-map
+         ("C-j" . vertico-next)
+         ("C-k" . vertico-previous)
+         ("C-f" . vertico-exit)
+         :map minibuffer-local-map
+         ("M-h" . backward-kill-word))
+  :custom
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+
+(use-package savehist
+  :init
+  (savehist-mode))
+
+(use-package marginalia
+  :after vertico
+  :ensure t
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
+  :init
+  (marginalia-mode))
+#+end_src
+  #+RESULTS:
+  : org-roam-dailies-capture-tomorrow
