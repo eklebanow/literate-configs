@@ -12,6 +12,7 @@ DOOM Emacs Config
 - [[#dired-directory-manager-config][Dired Directory Manager Config:]]
 - [[#miscellaneous-stuff][Miscellaneous Stuff:]]
 - [[#config-for-nyxt-elisp-browser][Config for Nyxt (elisp) browser:]]
+- [[#journaling-with-org-roam][Journaling with Org-Roam]]
 - [[#completion][Completion:]]
 
 * Introduction:
@@ -57,15 +58,15 @@ General parameters for setting up emacs environment. This includes theming, wind
 Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu4e.  Outgoing mail is gpg encoded. Bookmarks can be made and viewed and incoming e-mail can be sent to graphical browsers for viewing.
 
 #+begin_src emacs-lisp
-(setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook")
+(after! mu4e
+  (setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook")
+        mu4e-get-mail-command "mbsync -a"
         mu4e-index-update-in-background t
-        mu4e-compose-complete-only-personal t
         mu4e-compose-signature-auto-include t
         mu4e-use-fancy-chars t
         mu4e-view-show-addresses t
         mu4e-view-show-images t
         mu4e-compose-format-flowed t
-        mu4e-compose-in-new-frame t
         mu4e-change-filenames-when-moving t
         mu4e-maildir-shortcuts
          '( ("/Inbox" . ?i)
@@ -78,7 +79,7 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
          message-signature-file "~/.signature_email"
          message-citation-line-format "On %a %d %b %Y at %R, %f wrote:\n"
          message-citation-line-function 'message-insert-formatted-citation-line
-         message-kill-buffer-on-exit t)
+         message-kill-buffer-on-exit t))
 
 (set-email-account! "klebane@outlook.com"
                     '((user-mail-address      . "klebane@outlook.com")
@@ -453,7 +454,7 @@ Call an Emacs command and have a Nyxt open and listen to us from a REPEL. We nee
 (defengine youtube
   "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
   #+end_src
-[[id:64dd4de2-c037-4b6e-8f99-48f1181d131e][2021-08-31]]* Journaling with Org-Roam
+* Journaling with Org-Roam
 Org-Roam is set up to be my second brain.  I can capture information on a certain date and time and then revisit it as necessary...no memory required       .
 
  #+begin_src emacs-lisp
