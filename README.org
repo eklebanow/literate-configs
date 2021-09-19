@@ -28,30 +28,36 @@ General parameters for setting up emacs environment. This includes theming, wind
       doom-variable-pitch-font (font-spec :family "Overpass" :size 16)
       doom-serif-font (font-spec :family "IBM Plex Mono" :weight 'light))
 (setq-default
- delete-by-moving-to-trash t              
- tab-width 4                                    
- uniquify-buffer-name-style 'forward             
- window-combination-resize t                      
- x-stretch-cursor t)                           
+ delete-by-moving-to-trash t
+ tab-width 4
+ uniquify-buffer-name-style 'forward
+ window-combination-resize t
+ x-stretch-cursor t)
 
-(setq undo-limit 80000000     
-      evil-want-fine-undo t            
-      auto-save-default t                  
-      inhibit-compacting-font-caches t  
-      truncate-string-ellipsis "…"        
+(setq undo-limit 80000000
+      evil-want-fine-undo t
+      auto-save-default t
+      inhibit-compacting-font-caches t
+      truncate-string-ellipsis "…"
       display-time-24hr-format t)
 
 (delete-selection-mode 1)
-(display-time-mode 1)          
- (display-battery-mode 1)                  
-(global-subword-mode 1)                    
+(display-time-mode 1)
+(display-battery-mode 1)
+(global-subword-mode 1)
 
-                                
-(if (eq initial-window-system 'x)                
-    (toggle-frame-maximized)
-  (toggle-frame-fullscreen))
+(setq-default major-mode 'org-mode)
+
+(setq display-line-numbers-type 'relative)
 
 (setq display-time-day-and-date t)
+
+(setq evil-vsplit-window-right t
+      evil-split-window-below t)
+
+(defadvice! prompt-for-buffer (&rest _)
+  :after '(evil-window-split evil-window-vsplit)
+  (consult-buffer))
 #+end_src
 
 * Email config using Mbsync and Mu4e
@@ -196,7 +202,7 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 (defun bjm/elfeed-show-visit-gui ()
   "Wrapper for elfeed-show-visit to use gui browser instead of eww"
   (interactive)
-  (let ((browse-url-generic-program "/usr/bin/xdg-open"))
+  (let ((browse-url-generic-program "qutebrowser"))
                   (elfeed-show-visit t)))
 
 (global-set-key (kbd "C-x w") 'elfeed)
@@ -278,6 +284,9 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 
 #+end_src
 
+#+RESULTS:
+: 0.7
+
 * Config for IRC Chat Using Circe:
 #+begin_src emacs-lisp
 (after! circe
@@ -314,8 +323,6 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
 
 (global-set-key "\C-s" 'swiper)
 
-(setq-default major-mode 'org-mode)
-
 (after! flyspell (require 'flyspell-lazy) (flyspell-lazy-mode 1))
 
 (after! flyspell (add-hook 'text-mode-hook 'flyspell-mode))
@@ -339,8 +346,6 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
 (after! org-mode
   :hook (org-mode . efs/org-mode-visual-fill))
 #+end_src
-
-#+RESULTS:
 
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
