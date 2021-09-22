@@ -117,7 +117,7 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 (map!
  :after mu4e
  :map mu4e-view-mode-map
- "C-c g" #'bjm/mu4e-view-go-to-url-gui)
+ "C-c u" #'bjm/mu4e-view-go-to-url-gui)
 
 ;;(after! mu4e
   ;;  :hook (after-init . mu4e-alert-enable-mode-line-display)
@@ -131,7 +131,7 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 (defun bjm/mu4e-view-go-to-url-gui ()
   "Wrapper for mu4e-view-go-to-url to use gui browser instead of eww"
   (interactive)
-  (let ((browse-url-browser-function 'browse-url-default-browser))
+  (let ((browse-url-browser-function . browse-url-qutebrowser-program))
     (mu4e-view-go-to-url-gui)))
 
 (setq bookmark-default-file '"/home/eklebanow/bookmarks")
@@ -192,18 +192,18 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 ;;("science" :elfeed:)
 ("http://feeds.nature.com/nature/rss/current" science)
 ("https://rss.nytimes.com/services/xml/rss/nyt/Science.xml" science)
-("https://rss.nytimes.com/services/xml/rss/nyt/Health.xml" science)
-))
+("https://rss.nytimes.com/services/xml/rss/nyt/Health.xml" science)))
+(after! elfeed
+(setq browse-url-browser-function '((".*youtube.*" . browse-url-qutebrowser-program) ("." . eww-browse-url)))
 
-;;(setq browse-url-browser-function '((".*youtube.*" . browse-url-default-browser) ("." . eww-browse-url)))
-(setq browse-url-browser-function 'eww-browse-url)
-
+(setq browse-url-qutebrowser-program "qutebrowser")
 (global-set-key "\C-ce" 'elfeed-new-search)
+
 (defun bjm/elfeed-show-visit-gui ()
   "Wrapper for elfeed-show-visit to use gui browser instead of eww"
   (interactive)
   (let ((browse-url-generic-program "qutebrowser"))
-                  (elfeed-show-visit t)))
+                  (elfeed-show-visit t))))
 
 (global-set-key (kbd "C-x w") 'elfeed)
 
@@ -237,10 +237,6 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
                       nil
                       :weight 'normal
                       :foreground (face-attribute 'default :foreground)))
-(map!
- :after elfeed
- :map elfeed-search-mode-map
- "C-c u" #'elfeed-update)
 
 (map!
 :after elfeed
@@ -250,12 +246,10 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
    "C-c s" #'bjm/elfeed-show-sports
    "C-c y" #'bjm/elfeed-show-YouTube
    "C-c w" #'bjm/elfeed-show-science
-   "C-c n" #'bjm/elfeed-show-news)
+   "C-c n" #'bjm/elfeed-show-news
+   "C-c u" #'elfeed-update)
 
-(map!
- :after elfeed
- :map elfeed-show-mode-map
- "C-c g" #'bjm/elfeed-show-visit-gui)
+
 
 ;;(after! elfeed
 ;;(setq link-hint t)
@@ -283,9 +277,6 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 (setq eww-buffer-max-height 0.7)
 
 #+end_src
-
-#+RESULTS:
-: 0.7
 
 * Config for IRC Chat Using Circe:
 #+begin_src emacs-lisp
@@ -381,7 +372,7 @@ The vuiet music player is used with keybindings for shortcuts.
 Call an Emacs command and have a Nyxt open and listen to us from a REPEL. We need to run the browser, and to connect Swank and Slime.
 #+begin_src emacs-lisp
 
-;;(setq engine/browser-function 'nyxt-browse-url)
+(setq engine/browser-function 'nyxt-browse-url)
 
 (after! engine-mode
 
