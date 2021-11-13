@@ -543,13 +543,18 @@ Use vertico for streamlined completion and other niceties provided by marginalia
 REGISTERS
 Emacs registers are compartments where you can save text, rectangles and positions for later use. Once you save text or a rectangle in a register, you can copy it into the buffer once or many times; once you save a position in a register, you can jump back to that position once or many times.  The default GNU Emacs keybindings for these commands (with the exception of counsel-register) involves ‘C-x r’ followed by one or more other keys.  I wanted to make this a little more user friendly, and since I am using Doom Emacs, I choose to replace the ‘C-x r’ part of the key chords with ‘SPC r’.
 
-| _COMMAND_            | _DESCRIPTION_                 | _KEYBINDING_ |
-|----------------------+-------------------------------+--------------|
-| copy to register     | /copy to register/            | SPC rc       |
-| Frameset to register | /Frameset to register/        | SPC rf       |
-| insert-register      | /Insert contents of register/ | SPC ri       |
-| jump-to-register     | /jump-to-register/            | SPC rj       |
-
+| _COMMAND_                        | _DESCRIPTION_                     | _KEYBINDING_ |
+|----------------------------------+-----------------------------------+--------------|
+| copy to register                 | /copy to register/                | SPC rc       |
+| Frameset to register             | /Frameset to register/            | SPC rf       |
+| insert-register                  | /Insert contents of register/     | SPC ri       |
+| jump-to-register                 | /Jump to register/                | SPC rj       |
+| list-registers                   | /List registers/                  | SPC rl       |
+| number-to-register               | /Number to register/              | SPC rn       |
+| counsel-register                 | /View a register/                 | SPC rv       |
+| window-configuration-to-register | /Window configuration to register | SPC rw       |
+| increment-register               | /Increment register/              | SPC r+       |
+| point-to-register                | /Point to register/               | SPC rSPC     |
 
 #+begin_src emacs-lisp
 
