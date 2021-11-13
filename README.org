@@ -348,15 +348,38 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
 
+| _COMMAND_                        | _DESCRIPTION_                     | _KEYBINDING_ |
+| ----------------------------------------------------------------------------------- |
+| vuiet-stop                       | /stop vuiet/                      | SPC vs       |
+| vuiet-next                       | /vuiet-next-track/                | SPC vn       |
+| vuiet-previous                   | /play previous track/             | SPC vp       |
+| vuiet-replay                     | /replay track/                    | SPC vr       |
+| vuiet-play-loved-tracks          | /play loved tracks randomly/      | SPC vl       |
+| vuiet-play-loved-track           | /play a specific loved track/     | SPC vtt      |
+| vuiet-play-album                 | /pick a whole album to play/      | SPC va       |
+| vuiet-play-track-search          | /search to find a track/          | SPC vts      |
+| vuiet-playing-track-lyrics       | /show track lyrics/               | SPC vtl      |
+
 #+begin_src emacs-lisp
-(global-set-key "\C-cl" 'vuiet-play-loved-tracks)
-(global-set-key "\C-cs" 'vuiet-stop)
-;;(global-set-key "\C-cn" 'vuiet-next)
+(map! :leader
+      (:prefix ("v" . "vuiet")
+       :desc "vuiet-stop" "s" #'stop-vuiet
+       :desc "vuiet-next" "n" #'vuiet-next
+       :desc "vuiet-previous" "p" #'vuiet-previous
+       :desc "vuiet-replay" "r" #'vuiet-replay
+       :desc "vuiet-play-loved-tracks" "l" #'vuiet-play-loved-tracks
+       :desc "vuiet-play-loved-track" "tt" #'vuiet-play-loved-track
+       :desc "vuiet-play-album" "a" #'vuiet-play-album
+       :desc "vuiet-play-track-search" "ts" #'vuiet-play-track-search
+       :desc "vuiet-play-track-lyrics" "tl" #'vuiet-playing-track-lyrics))
 #+end_src
+
+
 * Eshell Config:
 #+begin_src emacs-lisp
 (eshell-git-prompt-use-theme 'powerline)
 #+end_src
+
 * Dired Directory Manager Config:
 #+begin_src emacs-lisp
 
