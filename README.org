@@ -1,4 +1,4 @@
-DOOM Emacs Config
+ DOOM Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
 
 * TABLE OF CONTENTS :toc:
@@ -14,6 +14,7 @@ DOOM Emacs Config
 - [[#config-for-nyxt-elisp-browser][Config for Nyxt (elisp) browser:]]
 - [[#journaling-with-org-roam][Journaling with Org-Roam]]
 - [[#completion][Completion:]]
+- [[#registers][Registers:]]
 
 * Introduction:
 General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
@@ -46,7 +47,7 @@ General parameters for setting up emacs environment. This includes theming, wind
 (display-battery-mode 1)
 (global-subword-mode 1)
 
-(setq-default major-mode 'org-mode)
+;;(setq-default major-mode 'org-mode)
 
 (setq display-line-numbers-type 'relative)
 
@@ -113,18 +114,12 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 	("flag:unread" "Unread messages" ?n)
         ("date:today..now" "Today's messages" ?t)
         ))
-
 (map!
  :after mu4e
  :map mu4e-view-mode-map
  "C-c u" #'bjm/mu4e-view-go-to-url-gui)
 
-;;(after! mu4e
-  ;;  :hook (after-init . mu4e-alert-enable-mode-line-display)
-    ;;      (after-init . mu4e-alert-enable-notifications)
-  ;;  :config (mu4e-alert-set-default-style 'libnotify))
-
-(after! mu4e
+  (after! mu4e
   (add-to-list 'mu4e-view-actions '("browse message" .  mu4e-action-view-in-browser)))
 
 
@@ -136,67 +131,82 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 
 (setq bookmark-default-file '"/home/eklebanow/bookmarks")
 #+end_src
+
+#+RESULTS:
+: /home/eklebanow/bookmarks
+
 * Elfeed Config for RSS Feeds
-The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing.
+The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing. Added functions so that date of feed is included in elfeed search. Is also set up to update feed each time elfeed is openned.
 #+begin_src emacs-lisp
-
-(setq! elfeed-feeds
-'(("https://www.cyberciti.biz/feed/" linux)
-("https://www.tecmint.com/feed/" linux)
-("https://feeds.feedburner.com/d0od" linux)
-("https://www.linuxjournal.com/node/feed" linux)
-("http://www.linux-magazine.com/rss/feed/lmi_full" linux)
-("http://rss.slashdot.org/Slashdot/slashdotLinux" linux)
-("https://www.youtube.com/feeds/videos.xml?user=TheRibalinux" linux)
-("https://itsfoss.com/feed" linux)
-("https://news.google.com/news?cf=all&hl=en&pz=1&ned=us&q=linux&output=rss" linux)
-("https://www.phoronix.com/rss.php" linux)
-("https://www.unixmen.com/feed/" linux)
-("https://www.linoxide.com/feed" linux)
-("https://www.blogger.com/feeds/5398236625900904090/posts/default" linux)
-("http://www.linuxandubuntu.com/1/feed" linux)
-("https://www.linuxtoday.com/biglt.rss" linux)
-("https://lxer.com/module/newswire/headlines.rss" linux)
-("https://linuxhint.com/feed/" linux)
-("https://sysads.co.uk/feed" linux)
-("https://freedompenguin.com/feed/" linux)
-;;("news" :elfeed:)
-("http://rss.cnn.com/rss/cnn_topstories.rss" news)
-("http://dowjones.net/rss/" news)
-("http://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml" news)
-("http://www.npr.org/rss/rss.php?id=1001" news)
-("http://rssfeeds.usatoday.com/usatoday-NewsTopStories" news)
-;;("sports" :elfeed:)
-("http://www.si.com/rss/si_topstories.rss" sports)
-("http://www.si.com/rss/si_topstories.rss" sports)
-("https://rss.nytimes.com/services/xml/rss/nyt/Sports.xml" sports)
-("https://talksport.com/rss/sports-news/all/feed" sports)
-("http://feeds.sport24.co.za/articles/Sport/Featured/TopStories/rss" sports)
-("http://rss.cnn.com/rss/edition_sport.rss" sports)
-;;("tech" :elfeed:):
-("https://techcrunch.com/rssfeeds/" tech)
-("http://rss.slashdot.org/Slashdot/slashdot" tech)
-("https://spetrum.ieee.org/rss/blog/tech-talk/fulltext" tech)
-("https://www.techworld.com/news/rss" tech)
-("https://www.wired.com/feed" tech)
-("https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml" tech)
-;;("YouTube" :elfeed:)
-("https://www.youtube.com/feeds/videos.xml?channel_id=UCAPR27YUyxmgwm3Wc2WSHLw" YouTube)
-("https://www.youtube.com/feeds/videos.xml?channel_id=UCW6J17hZ_Vgr6cQgd_kHt5A" YouTube)
-("https://www.youtube.com/feeds/videos.xml?channel_id=UCc6MhFTqnuIpEGgLBm_jwtw" YouTube)
-("https://www.youtube.com/feeds/videos.xml?channel_id=UC0A3ldncnGQ1M_RU2Wb4L2A" YouTube)
-("https://www.youtube.com/feeds/videos.xml?channel_id=UCkTweJExGMqp3NLvzvOn-yg" YouTube)
-("https://www.youtube.com/feeds/videos.xml?channel_id=UCqh8w-GY6v0vgwIn_iWt87A" YouTube)
-;;("reddit" :elfeed:)
-("https://www.reddit.com/r/MacOS/comments/8vsd3k/macbook_pro_13_2017_or_lenovo_carbon_x1_6_gen_for/.rss" reddit)
-;;("science" :elfeed:)
-("http://feeds.nature.com/nature/rss/current" science)
-("https://rss.nytimes.com/services/xml/rss/nyt/Science.xml" science)
-("https://rss.nytimes.com/services/xml/rss/nyt/Health.xml" science)))
 (after! elfeed
-(setq browse-url-browser-function '((".*youtube.*" . browse-url-qutebrowser-program) ("." . eww-browse-url)))
+       (defun elfeed-goodies/search-header-draw ()
+  "Returns the string to be used as the Elfeed header."
+  (if (zerop (elfeed-db-last-update))
+      (elfeed-search--intro-header)
+    (let* ((separator-left (intern (format "powerline-%s-%s"
+                                           elfeed-goodies/powerline-default-separator
+                                           (car powerline-default-separator-dir))))
+           (separator-right (intern (format "powerline-%s-%s"
+                                            elfeed-goodies/powerline-default-separator
+                                            (cdr powerline-default-separator-dir))))
+           (db-time (seconds-to-time (elfeed-db-last-update)))
+           (stats (-elfeed/feed-stats))
+           (search-filter (cond
+                           (elfeed-search-filter-active
+                            "")
+                           (elfeed-search-filter
+                            elfeed-search-filter)
+                           (""))))
+      (if (>= (window-width) (* (frame-width) elfeed-goodies/wide-threshold))
+          (search-header/draw-wide separator-left separator-right search-filter stats db-time)
+        (search-header/draw-tight separator-left separator-right search-filter stats db-time)))))
 
-(setq browse-url-qutebrowser-program "qutebrowser")
+(defun elfeed-goodies/entry-line-draw (entry)
+  "Print ENTRY to the buffer."
+
+  (let* ((title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
+         (date (elfeed-search-format-date (elfeed-entry-date entry)))
+         (title-faces (elfeed-search--faces (elfeed-entry-tags entry)))
+         (feed (elfeed-entry-feed entry))
+         (feed-title
+          (when feed
+            (or (elfeed-meta feed :title) (elfeed-feed-title feed))))
+         (tags (mapcar #'symbol-name (elfeed-entry-tags entry)))
+         (tags-str (concat "[" (mapconcat 'identity tags ",") "]"))
+         (title-width (- (window-width) elfeed-goodies/feed-source-column-width
+                         elfeed-goodies/tag-column-width 4))
+         (title-column (elfeed-format-column
+                        title (elfeed-clamp
+                               elfeed-search-title-min-width
+                               title-width
+                               title-width)
+                        :left))
+         (tag-column (elfeed-format-column
+                      tags-str (elfeed-clamp (length tags-str)
+                                             elfeed-goodies/tag-column-width
+                                             elfeed-goodies/tag-column-width)
+                      :left))
+         (feed-column (elfeed-format-column
+                       feed-title (elfeed-clamp elfeed-goodies/feed-source-column-width
+                                                elfeed-goodies/feed-source-column-width
+                                                elfeed-goodies/feed-source-column-width)
+                       :left)))
+
+    (if (>= (window-width) (* (frame-width) elfeed-goodies/wide-threshold))
+        (progn
+          (insert (propertize date 'face 'elfeed-search-date-face) " ")
+          (insert (propertize feed-column 'face 'elfeed-search-feed-face) " ")
+          (insert (propertize tag-column 'face 'elfeed-search-tag-face) " ")
+          (insert (propertize title 'face title-faces 'kbd-help title)))
+          (insert (propertize title 'face title-faces 'kbd-help title))))))
+
+
+(load (expand-file-name "~/feeds.el"))
+(add-hook! 'elfeed-search-mode-hook 'elfeed-update)
+(after! elfeed
+  (setq browse-url-generic-program "qutebrowser")
+  (setq browse-url-browser-function '((".*youtube.*" . browse-url-xdg-open) ("." . eww-browse-url)))
+
 (global-set-key "\C-ce" 'elfeed-new-search)
 
 (defun bjm/elfeed-show-visit-gui ()
@@ -249,12 +259,6 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
    "C-c n" #'bjm/elfeed-show-news
    "C-c u" #'elfeed-update)
 
-
-
-;;(after! elfeed
-;;(setq link-hint t)
-;;   :bind ("C-c f" . link-hint-open-link))
-
 (after! elfeed
 (elfeed-goodies/setup)
 (setq elfeed-goodies/entry-pane-size 0.5)
@@ -277,6 +281,9 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 (setq eww-buffer-max-height 0.7)
 
 #+end_src
+
+#+RESULTS:
+: 0.7
 
 * Config for IRC Chat Using Circe:
 #+begin_src emacs-lisp
@@ -529,4 +536,111 @@ Use vertico for streamlined completion and other niceties provided by marginalia
   (marginalia-mode))
 #+end_src
   #+RESULTS:
-  : org-roam-dailies-capture-tomorrow
+  : marginalia
+
+
+* Registers:
+REGISTERS
+Emacs registers are compartments where you can save text, rectangles and positions for later use. Once you save text or a rectangle in a register, you can copy it into the buffer once or many times; once you save a position in a register, you can jump back to that position once or many times.  The default GNU Emacs keybindings for these commands (with the exception of counsel-register) involves ‘C-x r’ followed by one or more other keys.  I wanted to make this a little more user friendly, and since I am using Doom Emacs, I choose to replace the ‘C-x r’ part of the key chords with ‘SPC r’.
+
+| COMMAND              | DESCRIPTION                   | KEYBINDING |
+| copy to register     | /copy to register/            | SPC rc     |
+| Frameset to register | /Frameset to register/        | SPC rf     |
+| insert-register      | /Insert contents of register/ | SPC ri     |
+| jump-to-register     | /jump-to-register/            | SPC rj     |
+
+
+#+begin_src emacs-lisp
+
+(map! :leader
+      (:prefix ("r" . "registers")
+       :desc "Copy to register" "c" #'copy-to-register
+       :desc "Frameset to register" "f" #'frameset-to-register
+       :desc "Insert contents of register" "i" #'insert-register
+       :desc "Jump to register" "j" #'jump-to-register
+       :desc "List registers" "l" #'list-registers
+       :desc "Number to register" "n" #'number-to-register
+       :desc "Interactively choose a register" "r" #'counsel-register
+       :desc "View a register" "v" #'view-register
+       :desc "Window configuration to register" "w" #'window-configuration-to-register
+       :desc "Increment register" "+" #'increment-register
+       :desc "Point to register" "SPC" #'point-to-register))
+
+#+end_src
+
+#+RESULTS:
+: point-to-register
+#+HTML:
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+<style>
+    table, th, td {
+
+border: 1px solid black;
+
+border-collapse: collapse;
+
+}
+
+th, td {
+
+padding: 10px;
+
+}
+
+th {
+
+background-color: #FDDF95;
+
+}
+ </style>
+</head>
+<body>
+<table>
+
+<tr>
+
+<th>Name</th>
+
+<th>Job Title</th>
+
+<th>Email address</th>
+
+</tr>
+
+<tr>
+
+<td>Anna Fitzgerald</td>
+
+<td>Staff Writer</td>
+
+<td>example@company.com</td>
+
+</tr>
+
+<tr>
+
+<td>John Smith</td>
+
+<td>Marketing Manager</td>
+
+<td>example2@company.com</td>
+
+</tr>
+
+<tr>
+
+<td>Zendaya Grace</td>
+
+<td>CEO</td>
+
+<td>example2@company.com</td>
+
+</tr>
+
+</table>
+</body>
+</html>
+#+END_EXPORT
