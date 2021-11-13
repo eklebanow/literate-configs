@@ -555,6 +555,7 @@ Emacs registers are compartments where you can save text, rectangles and positio
 | window-configuration-to-register | /Window configuration to register | SPC rw       |
 | increment-register               | /Increment register/              | SPC r+       |
 | point-to-register                | /Point to register/               | SPC rSPC     |
+|----------------------------------+-----------------------------------+--------------|
 
 #+begin_src emacs-lisp
 
