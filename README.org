@@ -363,7 +363,7 @@ The vuiet music player is used with keybindings for shortcuts.
 #+begin_src emacs-lisp
 (map! :leader
       (:prefix ("v" . "vuiet")
-       :desc "vuiet-stop" "s" #'stop-vuiet
+       :desc "vuiet-stop" "s" #'vuiet-stop
        :desc "vuiet-next" "n" #'vuiet-next
        :desc "vuiet-previous" "p" #'vuiet-previous
        :desc "vuiet-replay" "r" #'vuiet-replay
