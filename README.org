@@ -348,17 +348,16 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
 
-| _COMMAND_                        | _DESCRIPTION_                     | _KEYBINDING_ |
-| ----------------------------------------------------------------------------------- |
-| vuiet-stop                       | /stop vuiet/                      | SPC vs       |
-| vuiet-next                       | /vuiet-next-track/                | SPC vn       |
-| vuiet-previous                   | /play previous track/             | SPC vp       |
-| vuiet-replay                     | /replay track/                    | SPC vr       |
-| vuiet-play-loved-tracks          | /play loved tracks randomly/      | SPC vl       |
-| vuiet-play-loved-track           | /play a specific loved track/     | SPC vtt      |
-| vuiet-play-album                 | /pick a whole album to play/      | SPC va       |
-| vuiet-play-track-search          | /search to find a track/          | SPC vts      |
-| vuiet-playing-track-lyrics       | /show track lyrics/               | SPC vtl      |
+| _COMMAND_                  | _DESCRIPTION_                 | _KEYBINDING_ |
+|----------------------------+-------------------------------+--------------|
+| vuiet-next                 | /vuiet-next-track/            | SPC vn       |
+| vuiet-previous             | /play previous track/         | SPC vp       |
+| vuiet-replay               | /replay track/                | SPC vr       |
+| vuiet-play-loved-tracks    | /play loved tracks randomly/  | SPC vl       |
+| vuiet-play-loved-track     | /play a specific loved track/ | SPC vtt      |
+| vuiet-play-album           | /pick a whole album to play/  | SPC va       |
+| vuiet-play-track-search    | /search to find a track/      | SPC vts      |
+| vuiet-playing-track-lyrics | /show track lyrics/           | SPC vtl      |
 
 #+begin_src emacs-lisp
 (map! :leader
