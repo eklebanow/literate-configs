@@ -15,6 +15,8 @@
 - [[#journaling-with-org-roam][Journaling with Org-Roam]]
 - [[#completion][Completion:]]
 - [[#registers][Registers:]]
+- [[#setup-for-pdf-exports][Setup for PDF exports]]
+- [[#add-beacon][Add Beacon]]
 
 * Introduction:
 General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
@@ -579,3 +581,28 @@ Emacs registers are compartments where you can save text, rectangles and positio
 
 #+RESULTS:
 : point-to-register
+
+* Setup for PDF exports
+Here I use a setup file which is linked to each time a pdf is exported to get beautiful pdf exports
+#+begin_src emacs-lisp
+(with-eval-after-load 'ox-latex
+(add-to-list 'org-latex-classes
+             '("org-plain-latex"
+               "\\documentclass{article}
+           [NO-DEFAULT-PACKAGES]
+           [PACKAGES]
+           [EXTRA]"
+               ("\\section{%s}" . "\\section*{%s}")
+               ("\\subsection{%s}" . "\\subsection*{%s}")
+               ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+               ("\\paragraph{%s}" . "\\paragraph*{%s}")
+               ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
+(setq org-latex-toc-command "\\tableofcontents \\clearpage")
+#+end_src
+* Add Beacon
+Beacon causes cursor to be more apparent when moving between large areas
+#+begin_src emacs-lisp
+(beacon-mode 1)
+(setq beacon-dont-blink-commands nil)
+(setq beacon-blink-when-point-moves-vertically t)
+#+end_src
