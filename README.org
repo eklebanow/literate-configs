@@ -17,6 +17,7 @@
 - [[#registers][Registers:]]
 - [[#setup-for-pdf-exports][Setup for PDF exports]]
 - [[#add-beacon][Add Beacon]]
+- [[#insert-screenshots][Insert Screenshots]]
 
 * Introduction:
 General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
@@ -605,4 +606,16 @@ Beacon causes cursor to be more apparent when moving between large areas
 (beacon-mode 1)
 (setq beacon-dont-blink-commands nil)
 (setq beacon-blink-when-point-moves-vertically t)
+#+end_src
+* Insert Screenshots
+#+begin_src emacs-lisp
+(use-package! org-download
+  :after org
+  :custom
+  (org-download-image-dir "~/org/img/")
+  (org-download-screenshot-method "scrot -s %s")
+  (org-download-method 'directory)
+  (org-download-screenshot-file "~/tmp/screenshot.png")
+  (org-download-heading-lvl 1))
+
 #+end_src
