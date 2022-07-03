@@ -1,23 +1,25 @@
  DOOM Emacs Config
 #+PROPERTY: header-args :tangle /home/eklebanow/.doom.d/config.el
-
+#+auto_tangle: t
 * TABLE OF CONTENTS :toc:
 - [[#introduction][Introduction:]]
 - [[#email-config-using-mbsync-and-mu4e][Email config using Mbsync and Mu4e]]
 - [[#elfeed-config-for-rss-feeds][Elfeed Config for RSS Feeds]]
-- [[#config-for-irc-chat-using-circe][Config for IRC Chat Using Circe:]]
+- [[#config-for-irc-chat-using-circe][config for IRC Chat Using Circe:]]
 - [[#config-for-org-mode][Config for Org-Mode:]]
+  - [[#org-auto-tangle][Org-Auto-Tangle]]
+  - [[#journaling-with-org-roam][Journaling with Org-Roam]]
+  - [[#insert-org-download][Insert Org-Download]]
 - [[#config-for-vuiet-music-player][Config for Vuiet Music Player:]]
 - [[#eshell-config][Eshell Config:]]
 - [[#dired-directory-manager-config][Dired Directory Manager Config:]]
-- [[#miscellaneous-stuff][Miscellaneous Stuff:]]
 - [[#config-for-nyxt-elisp-browser][Config for Nyxt (elisp) browser:]]
-- [[#journaling-with-org-roam][Journaling with Org-Roam]]
 - [[#completion][Completion:]]
 - [[#registers][Registers:]]
 - [[#setup-for-pdf-exports][Setup for PDF exports]]
 - [[#add-beacon][Add Beacon]]
-- [[#insert-screenshots][Insert Screenshots]]
+- [[#using-vundo][Using Vundo]]
+- [[#add-yasnippet][Add YASnippet]]
 
 * Introduction:
 General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
@@ -25,8 +27,8 @@ General parameters for setting up emacs environment. This includes theming, wind
 #+begin_src emacs-lisp
 (setq user-full-name "Edward R. Klebanow"
       user-mail-address "klebane@outlook.com")
-
-(setq doom-theme 'doom-vibrant)
+(setq fancy-splash-image "~/doom-vapourwave-grid.png")
+(setq doom-theme 'doom-nord)
 (setq doom-font (font-spec :family "JetBrains Mono" :size 16)
       doom-big-font (font-spec :family "JetBrains Mono" :size 26)
       doom-variable-pitch-font (font-spec :family "Overpass" :size 16)
@@ -143,7 +145,7 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 #+begin_src emacs-lisp
 (after! elfeed
        (defun elfeed-goodies/search-header-draw ()
-  "Returns the string to be used as the Elfeed header."
+  "returns the string to be used as the Elfeed header."
   (if (zerop (elfeed-db-last-update))
       (elfeed-search--intro-header)
     (let* ((separator-left (intern (format "powerline-%s-%s"
@@ -165,7 +167,7 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
         (search-header/draw-tight separator-left separator-right search-filter stats db-time)))))
 
 (defun elfeed-goodies/entry-line-draw (entry)
-  "Print ENTRY to the buffer."
+  "print ENTRY to the buffer."
 
   (let* ((title (or (elfeed-meta entry :title) (elfeed-entry-title entry) ""))
          (date (elfeed-search-format-date (elfeed-entry-date entry)))
@@ -208,15 +210,15 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 (add-hook! 'elfeed-search-mode-hook 'elfeed-update)
 (after! elfeed
   (setq browse-url-generic-program "qutebrowser")
-  (setq browse-url-browser-function '((".*youtube.*" . browse-url-xdg-open) ("." . eww-browse-url)))
+(setq browse-url-handlers '((".*youtube.*" . browse-url-xdg-open) ("." . eww-browse-url)))
 
 (global-set-key "\C-ce" 'elfeed-new-search)
 
 (defun bjm/elfeed-show-visit-gui ()
-  "Wrapper for elfeed-show-visit to use gui browser instead of eww"
+  "wrapper for elfeed-show))-visit to use gui browser instead of eww"
   (interactive)
   (let ((browse-url-generic-program "qutebrowser"))
-                  (elfeed-show-visit t))))
+      (elfeed-show-visit t))))
 
 (global-set-key (kbd "C-x w") 'elfeed)
 
@@ -278,17 +280,16 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 (setq elfeed-goodies/powerline-default-separator 'arrow))
 
 (defcustom eww-buffer-max-height 0.7
-  "Maximum height for the eww buffer window."
+  "maximum height for the eww buffer window."
   :group 'eww
   :type 'integer)
 (setq eww-buffer-max-height 0.7)
 
+
 #+end_src
 
-#+RESULTS:
-: 0.7
 
-* Config for IRC Chat Using Circe:
+* config for IRC Chat Using Circe:
 #+begin_src emacs-lisp
 (after! circe
   (set-irc-server! "irc.us.libera.chat"
@@ -299,7 +300,6 @@ The config for Elfeed searches feeds in areas including: linux, news, sports, te
 	      :sasl-password "dairycow"
 	      :channels ("#gentoo"))))
 #+end_src
-
 * Config for Org-Mode:
 Setup for org documents including wrapping, spell checking, dictionary use and org-capture templates.  I-spell is used instead of A-spell.  Searching is by swiper
 #+begin_src emacs-lisp
@@ -318,7 +318,7 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
     (setq ispell-program-name "hunspell")
     (setq ispell-dictionary "en_US")
 
- (global-set-key "\C-ck" 'flyspell-correct-previous)
+ (global-set-key (kbd "<XF86Explorer>") 'flyspell-correct-wrapper)
 
  (setq +org-capture-journal-file '"~/cal/journal.org")
  (after! org
@@ -327,7 +327,75 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
    (setq org-agenda-files '("~/org/"))
    (setq org-odt-preferred-output-format "doc"))
 #+end_src
+** Org-Auto-Tangle
+Allows you to add the option #+auto-tangle: t in your Org file so that it automatically tangles when you save the document.
+#+begin_src emacs-lisp
+(use-package org-auto-tangle
+  :defer t
+  :hook (org-mode . org-auto-tangle-mode)
+(setq org-auto-tangle-default t))
+#+end_src
+** Journaling with Org-Roam
+Org-Roam is set up to be my second brain.  I can capture information on a certain date and time and then revisit it as necessary...no memory required
+ #+begin_src emacs-lisp
+(after! org
+  (use-package! org-roam
+  :init
+  (setq org-roam-v2-ack t)
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam" "l" #'org-roam-buffer-toggle
+        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+        :desc "org-roam-node-find" "f" #'org-roam-node-find
+        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
+        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+        :desc "org-roam-capture" "c" #'org-roam-capture)
+  :config
+  (org-roam-setup)))
 
+  (add-hook 'org-roam-mode-hook #'turn-on-visual-line-mode)
+  (setq org-roam-capture-templates
+        '(("d" "default" plain
+           "%?"
+           :if-new (file+head "${slug}.org"
+                              "#+title: ${title}\n")
+           :unnarrowed t)))
+ (use-package! org-roam-dailies
+  :init
+  (map! :leader
+        :prefix "n"
+        :desc "org-roam-dailies-capture-today" "j" #'org-roam-dailies-capture-today)
+  :custom
+  (org-roam-directory "~/RoamNotes")
+  (org-roam-completion-everywhere t)
+  (org-roam-dailies-capture-templates
+    '(("d" "default" entry "* %<%I:%M %p>: %?"
+       :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n i" . org-roam-node-insert)
+         :map org-mode-map
+         ("C-M-i" . completion-at-point)
+         :map org-roam-dailies-map
+         ("Y" . org-roam-dailies-capture-yesterday)
+         ("T" . org-roam-dailies-capture-tomorrow))
+  :bind-keymap
+  ("C-c n d" . org-roam-dailies-map)
+  :config
+  (require 'org-roam-dailies))
+  #+end_src
+** Insert Org-Download
+Allow images including screenshots to be downloaded into org files including via drag and drop.
+#+begin_src emacs-lisp
+(use-package! org-download
+  :after org
+  :custom
+  (org-download-image-dir "~/org/img/")
+  (org-download-screenshot-method "scrot -s %s")
+  (org-download-method 'directory)
+  (org-download-screenshot-file "~/tmp/screenshot.png")
+  (org-download-heading-lvl 1))
+#+end_src
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
 
@@ -368,17 +436,7 @@ The vuiet music player is used with keybindings for shortcuts.
 (setq dired-guess-shell-alist-user '(("\\.pdf$" "nohup xdg-open * </dev/null >/dev/null 2>&1 &")))
 #+end_src
 
-* Miscellaneous Stuff:
-#+begin_src emacs-lisp
 
-(custom-set-variables
- '(package-selected-packages
-   (quote
-    (powerline telephone-line company-try-hard mu4e-alert flyspell-correct-ivy helm-flyspell flyspell-correct-helm flyspell-correct-avy-menu flyspell-lazy info-colors elfeed-org org-msg youdao-dictionary swiper-helm vuiet org-journal link-hint excorporate eww-lnum counsel company calfw-ical)))
- '(send-mail-function (quote smtpmail-send-it)))
-(custom-set-faces
- '(default ((t (:background "#2a2e38")))))
-#+end_src
 * Config for Nyxt (elisp) browser:
 
 Call an Emacs command and have a Nyxt open and listen to us from a REPEL. We need to run the browser, and to connect Swank and Slime.
@@ -462,56 +520,7 @@ Call an Emacs command and have a Nyxt open and listen to us from a REPEL. We nee
 (defengine youtube
   "http://www.youtube.com/results?aq=f&oq=&search_query=%s")
   #+end_src
-* Journaling with Org-Roam
-Org-Roam is set up to be my second brain.  I can capture information on a certain date and time and then revisit it as necessary...no memory required       .
 
- #+begin_src emacs-lisp
-(after! org
-  (use-package! org-roam
-  :init
-  (setq org-roam-v2-ack t)
-  (map! :leader
-        :prefix "n"
-        :desc "org-roam" "l" #'org-roam-buffer-toggle
-        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
-        :desc "org-roam-node-find" "f" #'org-roam-node-find
-        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
-        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
-        :desc "org-roam-capture" "c" #'org-roam-capture)
-  :config
-  (org-roam-setup)))
-
-  (add-hook 'org-roam-mode-hook #'turn-on-visual-line-mode)
-  (setq org-roam-capture-templates
-        '(("d" "default" plain
-           "%?"
-           :if-new (file+head "${slug}.org"
-                              "#+title: ${title}\n")
-           :unnarrowed t)))
- (use-package! org-roam-dailies
-  :init
-  (map! :leader
-        :prefix "n"
-        :desc "org-roam-dailies-capture-today" "j" #'org-roam-dailies-capture-today)
-  :custom
-  (org-roam-directory "~/RoamNotes")
-  (org-roam-completion-everywhere t)
-  (org-roam-dailies-capture-templates
-    '(("d" "default" entry "* %<%I:%M %p>: %?"
-       :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert)
-         :map org-mode-map
-         ("C-M-i" . completion-at-point)
-         :map org-roam-dailies-map
-         ("Y" . org-roam-dailies-capture-yesterday)
-         ("T" . org-roam-dailies-capture-tomorrow))
-  :bind-keymap
-  ("C-c n d" . org-roam-dailies-map)
-  :config
-  (require 'org-roam-dailies))
-  #+end_src
 * Completion:
 Use vertico for streamlined completion and other niceties provided by marginalia.
 #+begin_src emacs-lisp
@@ -603,19 +612,41 @@ Here I use a setup file which is linked to each time a pdf is exported to get be
 * Add Beacon
 Beacon causes cursor to be more apparent when moving between large areas
 #+begin_src emacs-lisp
-(beacon-mode 1)
-(setq beacon-dont-blink-commands nil)
-(setq beacon-blink-when-point-moves-vertically t)
+(beacon-mode t)
 #+end_src
-* Insert Screenshots
-#+begin_src emacs-lisp
-(use-package! org-download
-  :after org
-  :custom
-  (org-download-image-dir "~/org/img/")
-  (org-download-screenshot-method "scrot -s %s")
-  (org-download-method 'directory)
-  (org-download-screenshot-file "~/tmp/screenshot.png")
-  (org-download-heading-lvl 1))
 
+* Using Vundo
+visual undo tree for emacs 28.  Setup for using vim motion keys hjkl
+#+begin_src emacs-lisp
+
+ (setq vundo-compact-display t)
+
+ ;; Better contrasting highlight.
+ (custom-set-faces
+   '(vundo-node ((t (:foreground "#808080"))))
+   '(vundo-stem ((t (:foreground "#808080"))))
+   '(vundo-highlight ((t (:foreground "#FFFF00")))))
+
+  ;; Use `HJKL` VIM-like motion, also Home/End to jump around.
+ ;; (define-key vundo-mode-map (kbd "l") #'vundo-forward)
+ ;; (define-key vundo-mode-map (kbd "<right>") #'vundo-forward)
+ ;; (define-key vundo-mode-map (kbd "h") #'vundo-backward)
+ ;; (define-key vundo-mode-map (kbd "<left>") #'vundo-backward)
+ ;; (define-key vundo-mode-map (kbd "j") #'vundo-next)
+ ;; (define-key vundo-mode-map (kbd "<down>") #'vundo-next)
+ ;; (define-key vundo-mode-map (kbd "k") #'vundo-previous)
+ ;; (define-key vundo-mode-map (kbd "<up>") #'vundo-previous)
+ ;; (define-key vundo-mode-map (kbd "q") #'vundo-quit)
+ ;; (define-key vundo-mode-map (kbd "C-g") #'vundo-quit)
+ ;; (define-key vundo-mode-map (kbd "RET") #'vundo-confirm)
+
+(with-eval-after-load 'evil (evil-define-key 'normal 'global (kbd "C-M-u") 'vundo))
+
+#+end_src
+* Add YASnippet
+This is a template control system which prevents me from having to do a lot rof repititive typing
+#+begin_src emacs-lisp
+(add-to-list 'load-path
+               "~/.doom.d/yasnippet")
+(yas-global-mode 1)
 #+end_src
