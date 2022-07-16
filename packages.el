@@ -6,15 +6,13 @@
 ;; (package! another-package :recipe (:host github :repo "username/repo"))
 ;; (package! builtin-package :disable t)
 
-
+(package! flyspell-lazy)
 (package! mu4e-alert)
-(package! elfeed)
 (package! pass)
 (package! org-journal)
 (package! avy)
 (package! company)
 (package! elfeed-org)
-(package! flyspell-lazy)
 (package! info-colors)
 (package! flyspell-correct-ivy)
 (package! mu4e)
@@ -41,3 +39,5 @@
 (package! embark)
 (package! org-auto-tangle)
 (package! vundo)
+(package! smartparens)
+(package! darkroom)
