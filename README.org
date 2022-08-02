@@ -73,6 +73,7 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 #+begin_src emacs-lisp
   (setq mu4e-maildir (expand-file-name "~/Maildir/my-outlook")
         mu4e-get-mail-command "mbsync -a"
+        mu4e-update-interval 600
         mu4e-index-update-in-background t
         mu4e-compose-signature-auto-include t
         mu4e-use-fancy-chars t
@@ -119,8 +120,6 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 	("flag:unread" "Unread messages" ?n)
         ("date:today..now" "Today's messages" ?t)
         ))
-
-
 (map!
  :after mu4e
  :map mu4e-view-mode-map
@@ -129,18 +128,31 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
   (after! mu4e
   (add-to-list 'mu4e-view-actions '("browse message" .  mu4e-action-view-in-browser)))
 
-
 (defun bjm/mu4e-view-go-to-url-gui ()
   "Wrapper for mu4e-view-go-to-url to use gui browser instead of eww"
   (interactive)
   (let ((browse-url-browser-function . browse-url-qutebrowser-program))
     (mu4e-view-go-to-url-gui)))
-
+(setq mu4e-headers-results-limit '5000)
 (setq bookmark-default-file '"/home/eklebanow/bookmarks")
+(defun mu4e-headers-mark-all-unread-read ()
+  "Put a ! \(read) mark on all visible unread messages."
+  (interactive)
+  (mu4e-headers-mark-for-each-if
+   (cons 'read nil)
+   (lambda (msg _param)
+     (memq 'unread (mu4e-msg-field msg :flags)))))
+
+(mu4e-alert-set-default-style 'notifications)
+(add-hook 'after-init-hook #'mu4e-alert-enable-notifications)
+
+(add-hook 'mu4e-index-updated-hook
+  (defun new-mail-sound ()
+    (shell-command "aplay ~/mixkit-elevator-tone-2863.wav &")))
 #+end_src
 
 #+RESULTS:
-: /home/eklebanow/bookmarks
+| mu4e~headers-maybe-auto-update | mu4e-alert-notify-unread-mail-async | mu4e-alert-update-mail-count-modeline | new-mail-sound | mu4e~headers-index-updated-hook-fn |
 
 * Elfeed Config for RSS Feeds
  The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing. Added functions so that date of feed is included in elfeed search. Is also set up to update feed each time elfeed is openned.
