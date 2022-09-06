@@ -41,3 +41,8 @@
 (package! vundo)
 (package! smartparens)
 (package! darkroom)
+(package! org-mime)
+(package! alert)
+(package! all-the-icons)
+(package! all-the-icons-dired)
+(package! peep-dired)
