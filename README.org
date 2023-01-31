@@ -3,6 +3,8 @@
 #+auto_tangle: t
 * TABLE OF CONTENTS :toc:
 - [[#introduction][Introduction:]]
+- [[#tecos-method-to-open-windows][Teco's Method to Open Windows]]
+- [[#link-hints][Link Hints]]
 - [[#email-config-using-mbsync-and-mu4e][Email config using Mbsync and Mu4e]]
 - [[#elfeed-config-for-rss-feeds][Elfeed Config for RSS Feeds]]
 - [[#config-for-irc-chat-using-circe][config for IRC Chat Using Circe:]]
@@ -64,12 +66,32 @@ General parameters for setting up emacs environment. This includes theming, wind
 
 (setq evil-vsplit-window-right t
       evil-split-window-below t)
+(defadvice! prompt-for-buffer (&rest _)
+  :after '(evil-window-split evil-window-vsplit)
+  (consult-buffer))
+#+end_src
+* Teco's Method to Open Windows
+I find it rather handy to be asked which buffer I want to see after splitting the window. Let’s make that happen.
 
+First, we’ll enter the new window
+
+#+begin_src emacs-lisp
+(setq evil-vsplit-window-right t
+      evil-split-window-below t)
+#+end_src
+Then, we’ll pull up a buffer prompt.
+#+begin_src emacs-lisp
 (defadvice! prompt-for-buffer (&rest _)
   :after '(evil-window-split evil-window-vsplit)
   (consult-buffer))
 #+end_src
 
+* Link Hints
+#+begin_src emacs-lisp
+
+;;(setq browse-url-browser-function 'browse-url-generic)
+;;(setq browse-url-generic-program "qutebrowser")
+#+end_src
 * Email config using Mbsync and Mu4e
 Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu4e.  Outgoing mail is gpg encoded. Bookmarks can be made and viewed and incoming e-mail can be sent to graphical browsers for viewing.New emails will result in an emacs notification.
 
@@ -169,18 +191,17 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 (setq elfeed-show-entry-switch 'display-buffer)
 (setq rmh-elfeed-org-files (list "~/elfeed.org"))))
 
-(after! elfeed
 
-(setq browse-url-generic-program "qutebrowser")
+(after! elfeed
 (setq browse-url-handlers '((".*youtube.*" . browse-url-xdg-open) ("." . eww-browse-url)))
 (setq elfeed-feeds '("~/feeds.el"))
-(global-set-key "\C-ce" 'elfeed-new-search)
+(global-set-key "\C-ce" 'elfeed-new-search))
 
 (defun bjm/elfeed-show-visit-gui ()
   "wrapper for elfeed-show))-visit to use gui browser instead of eww"
   (interactive)
   (let ((browse-url-generic-program "qutebrowser"))
-    (elfeed-show-visit t))))
+    (elfeed-show-visit t)))
 
 (global-set-key (kbd "C-x w") 'elfeed)
 
@@ -241,11 +262,11 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
   (setq elfeed-goodies/log-window-size 0.8)
   (setq elfeed-goodies/powerline-default-separator 'arrow))
 
-(defcustom eww-buffer-max-height 0.7
+(defcustom eww-buffer-max-height 0.9
   "maximum height for the eww buffer window."
   :group 'eww
   :type 'integer)
-(setq eww-buffer-max-height 0.7)
+(setq eww-buffer-max-height 0.1)
 #+end_src
 
 #+RESULTS:
@@ -266,12 +287,12 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 * Config for Org-Mode:
 Setup for org documents including wrapping, spell checking, dictionary use and org-capture templates.  I-spell is used instead of A-spell.  Searching is by swiper
 #+begin_src emacs-lisp
-(setq org-journal-enable-agenda-integration 't)
+(setq org-journal-enae-agenda-integration 't)
 (setq org-hide-emphasis-markers t)
-;; (after! org
-;; (add-hook 'visual-line-mode-hook #'visual-fill-column-mode)
-;;   (setq visual-fill-column-width 80)
-;;   (setq-default visual-fill-column-center-text t))
+ (after! org
+ (add-hook 'visual-line-mode-hook #'visual-fill-column-mode)
+   (setq visual-fill-column-width 80)
+   (setq-default visual-fill-column-center-text t))
 
  (global-set-key "\C-s" 'swiper)
 
@@ -281,7 +302,7 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
     (setq ispell-program-name "hunspell")
     (setq ispell-dictionary "en_US")
 
- (global-set-key (kbd "<XF86Explorer>") 'flyspell-correct-wrapper)
+ (global-set-key (kbd "<f12>") 'flyspell-correct-wrapper)
 
  (setq +org-capture-journal-file '"~/cal/journal.org")
  (after! org
@@ -289,6 +310,10 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
    (setq org-superstar-headline-bullets-list '("⁖"))
    (setq org-agenda-files '("~/org/"))
    (setq org-odt-preferred-output-format "doc"))
+(after! org
+  (map! :map org-mode-map
+        :n "M-j" #'org-metadown
+        :n "M-k" #'org-metaup))
 #+end_src
 ** Org-Auto-Tangle
 Allows you to add the option #+auto-tangle: t in your Org file so that it automatically tangles when you save the document.
@@ -301,29 +326,30 @@ Allows you to add the option #+auto-tangle: t in your Org file so that it automa
 ** Journaling with Org-Roam
 Org-Roam is set up to be my second brain.  I can capture information on a certain date and time and then revisit it as necessary...no memory required
  #+begin_src emacs-lisp
-(after! org
-  (use-package! org-roam
-  :init
-  (setq org-roam-v2-ack t)
-  (map! :leader
-        :prefix "n"
-        :desc "org-roam" "l" #'org-roam-buffer-toggle
-        :desc "org-roam-node-insert" "i" #'org-roam-node-insert
-        :desc "org-roam-node-find" "f" #'org-roam-node-find
-        :desc "org-roam-ref-find" "r" #'org-roam-ref-find
-        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
-        :desc "org-roam-capture" "c" #'org-roam-capture)
-:config
-(org-roam-setup)))
+ (after! org
+   (use-package! org-roam
+     :init
+     (setq org-roam-v2-ack t)
+ ;
+     (map! :leader
+         :prefix "n"
+         :desc "org-roam" "l" #'org-roam-buffer-toggle
+         :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+         :desc "org-roam-node-find" "f" #'org-roam-node-find
+         :desc "org-roam-ref-find" "r" #'org-roam-ref-find
+         :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+         :desc "org-roam-capture" "c" #'org-roam-capture)
+ :config
+ (org-roam-setup)))
 
-  (add-hook 'org-roam-mode-hook #'turn-on-visual-line-mode)
-  (setq org-roam-capture-templates
-        '(("d" "default" plain
-           "%?"
-           :if-new (file+head "${slug}.org"
-                              "#+title: ${title}\n")
-           :unnarrowed t)))
- (use-package! org-roam-dailies
+   (add-hook 'org-roam-mode-hook #'turn-on-visual-line-mode)
+   (setq org-roam-capture-templates
+         '(("d" "default" plain
+            "%?"
+            :if-new (file+head "${slug}.org"
+                               "#+title: ${title}\n")
+            :unnarrowed t)))
+(use-package! org-roam-dailies
   :init
   (map! :leader
         :prefix "n"
@@ -362,7 +388,7 @@ Allow images including screenshots to be downloaded into org files including via
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
 
-| _COMMAND_                  | _DESCRIPTION_                 | _KEYBINDING_ |
+|                          | _DESCRIPTION_                 | _KEYBINDING_ |
 |----------------------------+-------------------------------+--------------|
 | vuiet-next                 | /vuiet-next-track/            | SPC vn       |
 | vuiet-previous             | /play previous track/         | SPC vp       |
