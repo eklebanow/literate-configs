@@ -12,6 +12,7 @@
   - [[#org-auto-tangle][Org-Auto-Tangle]]
   - [[#journaling-with-org-roam][Journaling with Org-Roam]]
   - [[#insert-org-download][Insert Org-Download]]
+  - [[#note-taking-with-org][Note Taking with Org]]
 - [[#config-for-vuiet-music-player][Config for Vuiet Music Player:]]
 - [[#eshell-config][Eshell Config:]]
 - [[#dired][DIRED]]
@@ -26,6 +27,8 @@
 - [[#add-beacon][Add Beacon]]
 - [[#using-vundo][Using Vundo]]
 - [[#add-yasnippet][Add YASnippet]]
+- [[#add-imenu-list][Add Imenu-list]]
+- [[#chatgpt-assistant-using-open-ai][Chatgpt assistant using open-ai]]
 
 * Introduction:
 General parameters for setting up emacs environment. This includes theming, window parameters, modeline parameters and font style setting.  
@@ -60,15 +63,16 @@ General parameters for setting up emacs environment. This includes theming, wind
 (global-subword-mode 1)
 (setq-default major-mode 'org-mode)
 (global-set-key "\C-cd" 'darkroom-tentative-mode)
+(global-set-key "\C-cg" 'writegood-mode)
 
 (setq display-line-numbers-type 'visual)
 (setq display-time-day-and-date t)
 
-(setq evil-vsplit-window-right t
-      evil-split-window-below t)
-(defadvice! prompt-for-buffer (&rest _)
-  :after '(evil-window-split evil-window-vsplit)
-  (consult-buffer))
+;(setq evil-vsplit-window-right t
+;      evil-split-window-below t)
+;(defadvice! prompt-for-buffer (&rest _)
+;  :after '(evil-window-split evil-window-vsplit)
+;  (consult-buffer))
 #+end_src
 * Teco's Method to Open Windows
 I find it rather handy to be asked which buffer I want to see after splitting the window. Let’s make that happen.
@@ -183,94 +187,139 @@ Mbsync is used to synchronize emails from outlook.com mail to be presented to Mu
 * Elfeed Config for RSS Feeds
  The config for Elfeed searches feeds in areas including: linux, news, sports, tech, you tube, reddit and science.  Once entries are selected it goes into split screen views upon which entries can be viewed in the eww browser with surrounding cruff eliminated or they can be sent to graphical browser for viewing. Added functions so that date of feed is included in elfeed search. Is also set up to update feed each time elfeed is openned.
 #+begin_src emacs-lisp
-(after! elfeed
-  (use-package elfeed-org
-  :ensure t
-  :config
-(elfeed-org)
-(setq elfeed-show-entry-switch 'display-buffer)
-(setq rmh-elfeed-org-files (list "~/elfeed.org"))))
+ (after! elfeed
+ (setq elfeed-show-entry-switch 'pop-to-buffer))
+
+ (after! elfeed
+ (setq browse-url-browser-function 'browse-url-chrome))
+
+ (setq rmh-elfeed-org-files (list "~/elfeed.org")
+
+ (setq elfeed-show-entry-switch #'elfeed-display-buffer)
 
 
-(after! elfeed
-(setq browse-url-handlers '((".*youtube.*" . browse-url-xdg-open) ("." . eww-browse-url)))
-(setq elfeed-feeds '("~/feeds.el"))
-(global-set-key "\C-ce" 'elfeed-new-search))
+ (defun elfeed-display-buffer (buf &optional act)
+   (pop-to-buffer buf)
+   (set-window-text-height (get-buffer-window) (round (* 0.7 (frame-height)))))
 
-(defun bjm/elfeed-show-visit-gui ()
-  "wrapper for elfeed-show))-visit to use gui browser instead of eww"
-  (interactive)
-  (let ((browse-url-generic-program "qutebrowser"))
-    (elfeed-show-visit t)))
+ (defun elfeed-search-show-entry-pre (&optional lines)
+   "Returns a function to scroll forward or back in the Elfeed
+   search results, displaying entries without switching to them."
+       (lambda (times)
+         (interactive "p")
+         (forward-line (* times (or lines 0)))
+         (recenter)
+         (call-interactively #'elfeed-search-show-entry)
+         (select-window (previous-window))
+         (unless elfeed-search-remain-on-entry (forward-line -1))))
 
+   (define-key elfeed-search-mode-map (kbd "n") (elfeed-search-show-entry-pre +1))
+   (define-key elfeed-search-mode-map (kbd "p") (elfeed-search-show-entry-pre -1))
+   (define-key elfeed-search-mode-map (kbd "M-RET") (elfeed-search-show-entry-pre))
+
+
+;(setq rmh-elfeed-org-files (list "~/elfeed.org"))
+;
+;(setq elfeed-show-entry-switch #'elfeed-display-buffer)
+;(defun elfeed-display-buffer (buf &optional act)
+;  (pop-to-buffer buf)
+;  (set-window-text-height (get-buffer-window) (round (* 0.7 (frame-height)))))
+;
+;(setq lexical-binding t)
+;  (defun elfeed-search-show-entry-pre (&optional lines)
+; "Returns a function to scroll forward or back in the Elfeed
+; search results, displaying entries without switching to them."
+;      (lambda (times)         (interactive "p")
+;        (forward-line (* times (or lines 0)))
+;        (recenter)
+;        (call-interactively #'elfeed-search-show-entry)
+;        (select-window (previous-window))
+;        (unless elfeed:-search-remain-on-entry (forward-line -1))))
+;
+;(define-key elfeed-search-mode-map (kbd "p")
+;(elfeed-search-show-entry-pre +1))
+;(define-key elfeed-search-mode-map (kbd "n") (elfeed-search-show-entry-pre -1))
+;(define-key elfeed-search-mode-map (kbd "M-RET") (elfeed-search-show-entry-pre))
+;
+;;(after! elfeed
+;;(setq browse-url-handlers '((".*youtube.*" . browse-url-xdg-open) ("." . ww-browse-url)))
+;;(setq elfeed-feeds '("~/feeds.el"))
+;;(global-set-key "\C-ce" 'elfeed-new-search))
+;;
+;;(defun bjm/elfeed-show-visit-gui ()
+;;  "wrapper for elfeed-show))-visit to use gui browser instead of eww"
+;;  (interactive)
+;;  (let ((browse-url-generic-program "qutebrowser"))
+;;    (elfeed-show-visit t)))
+;
 (global-set-key (kbd "C-x w") 'elfeed)
-
-(defun bjm/elfeed-show-all ()
-  (interactive)
-  (bookmark-maybe-load-default-file)
-  (bookmark-jump "elfeed-all"))
-(defun bjm/elfeed-show-tech ()
-  (interactive)
-  (bookmark-maybe-load-default-file)
-  (bookmark-jump "elfeed-tech"))
-(defun bjm/elfeed-show-news ()
-  (interactive)
-  (bookmark-maybe-load-default-file)
-  (bookmark-jump "elfeed-news"))
-(defun bjm/elfeed-show-science ()
-  (interactive)
-  (bookmark-maybe-load-default-file)
-  (bookmark-jump "elfeed-science"))
-(defun bjm/elfeed-show-YouTube ()
-  (interactive)
-  (bookmark-maybe-load-default-file)
-  (bookmark-jump "elfeed-YouTube"))
-(defun bjm/elfeed-show-sports ()
-  (interactive)
-  (bookmark-maybe-load-default-file)
-  (bookmark-jump "elfeed-sports"))
-
-(after! elfeed
-  (set-face-attribute 'elfeed-search-unread-title-face
-                      nil
-                      :weight 'normal
-                      :foreground (face-attribute 'default :foreground)))
-
-(map!
- :after elfeed
- :map elfeed-search-mode-map
- "C-c a" #'bjm/elfeed-show-all
- "C-c t" #'bjm/elfeed-show-tech
- "C-c s" #'bjm/elfeed-show-sports
- "C-c y" #'bjm/elfeed-show-YouTube
- "C-c w" #'bjm/elfeed-show-science
- "C-c n" #'bjm/elfeed-show-news
- "C-c u" #'elfeed-update)
-
-(after! elfeed
-  (elfeed-goodies/setup)
-  (setq elfeed-goodies/entry-pane-size 0.5)
-  (add-hook 'elfeed-show-mode-hook 'visual-line-mode)
-  (evil-define-key 'normal elfeed-show-mode-map
-    (kbd "J") 'elfeed-goodies/split-show-next
-    (kbd "K") 'elfeed-goodies/split-show-prev)
-  (evil-define-key 'normal elfeed-search-mode-map
-    (kbd "J") 'elfeed-goodies/split-show-next
-    (kbd "K") 'elfeed-goodies/split-show-prev)
-  (setq elfeed-goodies/tag-column-width 12)
-  (setq elfeed-goodies/log-window-position 'bottom)
-  (setq elfeed-goodies/log-window-size 0.8)
-  (setq elfeed-goodies/powerline-default-separator 'arrow))
-
-(defcustom eww-buffer-max-height 0.9
-  "maximum height for the eww buffer window."
-  :group 'eww
-  :type 'integer)
-(setq eww-buffer-max-height 0.1)
+;
+;(defun bjm/elfeed-show-all ()
+;  (interactive)
+;  (bookmark-maybe-load-default-file)
+;  (bookmark-jump "elfeed-all"))
+;(defun bjm/elfeed-show-tech ()
+;  (interactive)
+;  (bookmark-maybe-load-default-file)
+;  (bookmark-jump "elfeed-tech"))
+;(defun bjm/elfeed-show-news ()
+;  (interactive)
+;  (bookmark-maybe-load-default-file)
+;  (bookmark-jump "elfeed-news"))
+;(defun bjm/elfeed-show-science ()
+;  (interactive)
+;  (bookmark-maybe-load-default-file)
+;  (bookmark-jump "elfeed-science"))
+;(defun bjm/elfeed-show-YouTube ()
+;  (interactive)
+;  (bookmark-maybe-load-default-file)
+;  (bookmark-jump "elfeed-YouTube"))
+;(defun bjm/elfeed-show-sports ()
+;  (interactive)
+;  (bookmark-maybe-load-default-file)
+;  (bookmark-jump "elfeed-sports"))
+;
+;(after! elfeed
+;  (set-face-attribute 'elfeed-search-unread-title-face
+;                      nil
+;                      :weight 'normal
+;                      :foreground (face-attribute 'default :foreground)))
+;
+;(map!
+; :after elfeed
+; :map elfeed-search-mode-map
+; "C-c a" #'bjm/elfeed-show-all
+; "C-c t" #'bjm/elfeed-show-tech
+; "C-c s" #'bjm/elfeed-show-sports
+; "C-c y" #'bjm/elfeed-show-YouTube
+; "C-c w" #'bjm/elfeed-show-science
+; "C-c n" #'bjm/elfeed-show-news
+; "C-c u" #'elfeed-update)
+;
+;(after! elfeed
+;  (elfeed-goodies/setup)
+;  (setq elfeed-goodies/entry-pane-size 0.5)
+;  (add-hook 'elfeed-show-mode-hook 'visual-line-mode)
+;  (evil-define-key 'normal elfeed-show-mode-map
+;    (kbd "J") 'elfeed-goodies/split-show-next
+;    (kbd "K") 'elfeed-goodies/split-show-prev)
+;  (evil-define-key 'normal elfeed-search-mode-map
+;    (kbd "J") 'elfeed-goodies/split-show-next
+;    (kbd "K") 'elfeed-goodies/split-show-prev)
+;  (setq elfeed-goodies/tag-column-width 12)
+;  (setq elfeed-goodies/log-window-position 'bottom)
+;  (setq elfeed-goodies/log-window-size 0.8)
+;  (setq elfeed-goodies/powerline-default-separator 'arrow))
+;
+;(defcustom eww-buffer-max-height 0.9
+;  "maximum height for the eww buffer window."
+;  :group 'eww
+;  :type 'integer)
+;(setq eww-buffer-max-height 0.1)
 #+end_src
 
 #+RESULTS:
-: 0.7
+| lambda | (times) | (interactive p) | (forward-line (* times (or lines 0))) | (recenter) | (call-interactively #'elfeed-search-show-entry) | (select-window (previous-window)) | (unless elfeed-search-remain-on-entry (forward-line -1)) |
 
 
 * config for IRC Chat Using Circe:
@@ -301,6 +350,8 @@ Setup for org documents including wrapping, spell checking, dictionary use and o
  (after! flyspell (add-hook 'text-mode-hook 'flyspell-mode))
     (setq ispell-program-name "hunspell")
     (setq ispell-dictionary "en_US")
+
+(after! flyspell (add-to-list 'flyspell-mode-hook #'writegood-mode))
 
  (global-set-key (kbd "<f12>") 'flyspell-correct-wrapper)
 
@@ -373,6 +424,10 @@ Org-Roam is set up to be my second brain.  I can capture information on a certai
   :config
   (require 'org-roam-dailies))
  #+end_src
+
+ #+RESULTS:
+ : org-roam-dailies-capture-tomorrow
+
 ** Insert Org-Download
 Allow images including screenshots to be downloaded into org files including via drag and drop.
 #+begin_src emacs-lisp
@@ -384,6 +439,16 @@ Allow images including screenshots to be downloaded into org files including via
   (org-download-method 'directory)
   (org-download-screenshot-file "~/tmp/screenshot.png")
   (org-download-heading-lvl 1))
+#+end_src
+** Note Taking with Org
+simple system
+#+begin_src emacs-lisp
+(setq org-capture-templates
+    '(("r" "Record"
+	 plain
+	 (file "~/org/records.org")
+	 "* %^{Title}  :%^{Tags}:\n%U%i\n%?\n")))
+(global-set-key (kbd "<f7>") 'org-tags-view)
 #+end_src
 * Config for Vuiet Music Player:
 The vuiet music player is used with keybindings for shortcuts.
@@ -508,9 +573,9 @@ Dired is the file manager within Emacs.  Below, I setup keybindings for image pr
 (add-hook 'dired-mode-hook 'all-the-icons-dired-mode)
 ;; With dired-open plugin, you can launch external programs for certain extensions
 ;; For example, I set all .png files to open in 'sxiv' and all .mp4 files to open in 'mpv'
-(setq dired-open-extensions '(("gif" . "sxiv")
-                              ("jpg" . "sxiv")
-                              ("png" . "sxiv")
+(setq dired-open-extensions '(("gif" . "nsxiv")
+                              ("jpg" . "nsxiv")
+                              ("png" . "nsxiv")
                               ("mkv" . "mpv")
                               ("mp4" . "mpv")
                               ("pdf" . "evince")))
@@ -643,13 +708,14 @@ Use vertico for streamlined completion and other niceties provided by marginalia
          ("C-j" . vertico-next)
          ("C-k" . vertico-previous)
          ("C-f" . vertico-exit)
+         ("M-q" . vertico-quick-insert)
          :map minibuffer-local-map
          ("M-h" . backward-kill-word))
   :custom
   (vertico-cycle t)
   :init
   (vertico-mode))
-
+(setq vertico-count '13)
 (use-package savehist
   :init
   (savehist-mode))
@@ -661,6 +727,9 @@ Use vertico for streamlined completion and other niceties provided by marginalia
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init
   (marginalia-mode))
+(vertico-posframe-mode 1)
+(setq vertico-posframe-border-width '3)
+(setq vertico-posframe-border 'red)
 #+end_src
   #+RESULTS:
   : marginalia
@@ -670,19 +739,19 @@ Use vertico for streamlined completion and other niceties provided by marginalia
 REGISTERS
 Emacs registers are compartments where you can save text, rectangles and positions for later use. Once you save text or a rectangle in a register, you can copy it into the buffer once or many times; once you save a position in a register, you can jump back to that position once or many times.  The default GNU Emacs keybindings for these commands (with the exception of counsel-register) involves ‘C-x r’ followed by one or more other keys.  I wanted to make this a little more user friendly, and since I am using Doom Emacs, I choose to replace the ‘C-x r’ part of the key chords with ‘SPC r’.
 
-| _COMMAND_                        | _DESCRIPTION_                     | _KEYBINDING_ |
-|----------------------------------+-----------------------------------+--------------|
-| copy to register                 | /copy to register/                | SPC rc       |
-| Frameset to register             | /Frameset to register/            | SPC rf       |
-| insert-register                  | /Insert contents of register/     | SPC ri       |
-| jump-to-register                 | /Jump to register/                | SPC rj       |
-| list-registers                   | /List registers/                  | SPC rl       |
-| number-to-register               | /Number to register/              | SPC rn       |
-| counsel-register                 | /View a register/                 | SPC rv       |
-| window-configuration-to-register | /Window configuration to register | SPC rw       |
-| increment-register               | /Increment register/              | SPC r+       |
-| point-to-register                | /Point to register/               | SPC rSPC     |
-|----------------------------------+-----------------------------------+--------------|
+| _COMMAND_                          | _DESCRIPTION_                       | _KEYBINDING_ |
+|----------------------------------+-----------------------------------+------------|
+| copy to register                 | /copy to register/                  | SPC rc     |
+| Frameset to register             | /Frameset to register/              | SPC rf     |
+| insert-register                  | /Insert contents of register/       | SPC ri     |
+| jump-to-register                 | /Jump to register/                  | SPC rj     |
+| list-registers                   | /List registers/                    | SPC rl     |
+| number-to-register               | /Number to register/                | SPC rn     |
+| counsel-register                 | /View a register/                   | SPC rv     |
+| window-configuration-to-register | /Window configuration to register | SPC rw     |
+| increment-register               | /Increment register/                | SPC r+     |
+| point-to-register                | /Point to register/                 | SPC rSPC   |
+|----------------------------------+-----------------------------------+------------|
 
 #+begin_src emacs-lisp
 
@@ -747,7 +816,7 @@ visual undo tree for emacs 28.  Setup for using vim motion keys hjkl
  ;; (define-key vundo-mode-map (kbd "<left>") #'vundo-backward)
  ;; (define-key vundo-mode-map (kbd "j") #'vundo-next)
  ;; (define-key vundo-mode-map (kbd "<down>") #'vundo-next)
- ;; (define-key vundo-mode-map (kbd "k") #'vundo-previous)
+ ; (define-key vundo-mode-map (kbd "k") #'vundo-previous)
  ;; (define-key vundo-mode-map (kbd "<up>") #'vundo-previous)
  ;; (define-key vundo-mode-map (kbd "q") #'vundo-quit)
  ;; (define-key vundo-mode-map (kbd "C-g") #'vundo-quit)
@@ -762,3 +831,26 @@ This is a template control system which prevents me from having to do a lot rof 
 (yas-global-mode 1)
 
 #+end_src
+* Add Imenu-list
+#+begin_src emacs-lisp
+(setq imenu-list-focus-after-activation t)
+#+end_src
+* Chatgpt assistant using open-ai
+#+begin_src emacs-lisp
+
+(setq org-ai-openai-api-token "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")
+
+(use-package org-ai
+  :ensure t
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+  (org-ai-install-yasnippets)) ; if you are using yasnippet and want `ai` snippets
+#+end_src
+
+#+RESULTS:
+: whisper-run
